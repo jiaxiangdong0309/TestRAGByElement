@@ -89,7 +89,7 @@ pnpm cz            # 规范提交（自动执行lint）
 ## 🤝 社区支持
 | 👨‍👨‍👧‍👦 微信交流群                          | 💩 作者微信                          |
 |---------------------------------------|-------------------------------------|
-| <img src="https://cdn.element-plus-x.com/vx-2025-06-23.png" alt="微信交流群" width="230px" height="300px" ><br>扫码加入交流群<br>获取最新动态与技术支持 | <img src="https://cdn.element-plus-x.com/vx.png" alt="作者vx" width="230px" height="300px" ><br>群过期或失效？<br>扫码添加作者微信 |
+| <img src="https://cdn.element-plus-x.com/vx-2025-06-30.png" alt="微信交流群" width="230px" height="300px" ><br>扫码加入交流群<br>获取最新动态与技术支持 | <img src="https://cdn.element-plus-x.com/vx.png" alt="作者vx" width="230px" height="300px" ><br>群过期或失效？<br>扫码添加作者微信 |
 
 ## 🌹 赠人玫瑰，手有余香
 <div align="center">
