@@ -22,6 +22,7 @@ type MessageItem = BubbleProps & {
   avatar: string;
   thinkingStatus?: ThinkingStatus;
   thinlCollapse?: boolean;
+  reasoning_content?: string;
 };
 
 const route = useRoute();
