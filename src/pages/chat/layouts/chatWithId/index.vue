@@ -1,12 +1,12 @@
 <!-- 每个回话对应的聊天内容 -->
 <script setup lang="ts">
 import type { AnyObject } from 'typescript-api-pro';
-import type { Sender } from 'vue-element-plus-x';
 import type { BubbleProps } from 'vue-element-plus-x/types/Bubble';
 import type { BubbleListInstance } from 'vue-element-plus-x/types/BubbleList';
 import type { FilesCardProps } from 'vue-element-plus-x/types/FilesCard';
 import type { ThinkingStatus } from 'vue-element-plus-x/types/Thinking';
 import { useHookFetch } from 'hook-fetch/vue';
+import { Sender } from 'vue-element-plus-x';
 import { useRoute } from 'vue-router';
 import { send } from '@/api';
 import FilesSelect from '@/components/FilesSelect/index.vue';
