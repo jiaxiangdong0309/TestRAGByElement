@@ -10,6 +10,16 @@
 <img src="https://cdn.element-plus-x.com/chat/1.webp" />
 </div>
 
+<div align="center">
+
+本项目 CDN 加速及安全防护由 Tencent EdgeOne 赞助
+
+[亚洲最佳CDN、边缘和安全解决方案 - Tencent EdgeOne](https://edgeone.ai/zh?from=github)
+
+<img src="readme/edgeone.png"/>
+
+</div>
+
 ## 🚀 项目亮点
 
 **ruoyi-element-ai** 是基于 **Vue3.5** + **Element-Plus-X** + **hook-fetch** + **TypeScript** + **Eslint9** 开发的企业级AI应用模板，搭配 **ruoyi-ai** 后端，快速构建仿豆包/通义的全栈AI项目。

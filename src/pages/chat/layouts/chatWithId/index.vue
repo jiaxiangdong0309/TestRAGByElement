@@ -255,6 +255,10 @@ watch(
             :status="item.thinkingStatus" class="thinking-chain-warp" @change="handleChange"
           />
         </template>
+
+        <!-- <template #content="{ item }">
+          <XMarkdown v-if="item.content" :markdown="item.content" class="markdown-body" />
+        </template> -->
       </BubbleList>
 
       <Sender
