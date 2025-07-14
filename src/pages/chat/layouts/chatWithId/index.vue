@@ -259,7 +259,7 @@ watch(
 
         <template #content="{ item }">
           <!-- chat 内容走 markdown -->
-          <XMarkdown v-if="item.content && item.role === 'system'" :markdown="item.content" class="markdown-body" />
+          <XMarkdown v-if="item.content && item.role === 'system'" :markdown="item.content" class="markdown-body" :themes="{ light: 'github-light', dark: 'github-dark' }" default-theme-mode="dark" />
           <!-- user 内容 纯文本 -->
           <div v-if="item.content && item.role === 'user'" class="user-content">
             {{ item.content }}
