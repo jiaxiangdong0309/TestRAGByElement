@@ -215,6 +215,7 @@ function addMessage(message: string, isUser: boolean) {
     reasoning_content: '',
     thinkingStatus: 'start',
     thinlCollapse: false,
+    noStyle: !isUser,
   };
   bubbleItems.value.push(obj);
 }
@@ -256,9 +257,14 @@ watch(
           />
         </template>
 
-        <!-- <template #content="{ item }">
-          <XMarkdown v-if="item.content" :markdown="item.content" class="markdown-body" />
-        </template> -->
+        <template #content="{ item }">
+          <!-- chat 内容走 markdown -->
+          <XMarkdown v-if="item.content && item.role === 'system'" :markdown="item.content" class="markdown-body" />
+          <!-- user 内容 纯文本 -->
+          <div v-if="item.content && item.role === 'user'" class="user-content">
+            {{ item.content }}
+          </div>
+        </template>
       </BubbleList>
 
       <Sender
@@ -338,8 +344,20 @@ watch(
       overflow: hidden;
       border-radius: 12px;
     }
+    .user-content {
+      // 换行
+      white-space: pre-wrap;
+    }
     .markdown-body {
       background-color: transparent;
+    }
+    .markdown-elxLanguage-header-div {
+      top: -25px !important;
+    }
+
+    // xmarkdown 样式
+    .elx-xmarkdown-container {
+      padding: 8px 4px;
     }
   }
   .chat-defaul-sender {
