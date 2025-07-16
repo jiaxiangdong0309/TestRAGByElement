@@ -29,4 +29,12 @@
   border-bottom-color: transparent !important;
 }
 
+// markdown 代码块高亮 Mermaid 图表 切换tab高度样式覆盖
+.el-tabs__nav {
+  display: flex;
+  align-items: center;
+  height: 34px !important;
+  border-radius: 8px !important;
+}
+
 
