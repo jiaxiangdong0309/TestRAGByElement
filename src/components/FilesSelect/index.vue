@@ -40,7 +40,7 @@ onChange((files) => {
   for (let i = 0; i < files!.length; i++) {
     const file = files![i];
     arr.push({
-      uid: crypto.randomUUID(), // 不写 uid，文件列表展示不出来，elx 1.2.0 bug 待修复
+      uid: window.crypto.randomUUID(), // 不写 uid，文件列表展示不出来，elx 1.2.0 bug 待修复
       name: file.name,
       fileSize: file.size,
       file,

@@ -16,6 +16,9 @@ export default defineConfig((cnf) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
+    define: {
+      global: 'globalThis',
+    },
     css: {
       // css全局变量使用，@/styles/variable.scss文件
       preprocessorOptions: {
