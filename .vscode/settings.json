@@ -1,12 +1,22 @@
 {
   "eslint.useFlatConfig": true,
 
+  // 禁用 Vetur，启用 Volar
+  "vetur.validation.template": false,
+  "vetur.validation.script": false,
+  "vetur.validation.style": false,
+  "volar.takeOverMode.enabled": true,
+
   // 关闭默认的配置，我们这里默认不开启prettier格式化
   "prettier.enable": false,
   // 关闭默认格式化
   "editor.formatOnSave": false,
   // 开启 stylint
   "stylelint.enable": true,
+
+  // TypeScript 服务配置
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.suggest.autoImports": true,
 
   // 保存自动修复
   "editor.codeActionsOnSave": {
