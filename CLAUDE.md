@@ -131,3 +131,16 @@ src/
 - 动态路由根据用户权限加载
 - UI 支持暗黑模式并持久化偏好设置
 - 聊天功能包含会话管理和消息流式传输
+
+## API 开发参考
+
+### 接口文档
+- **详细接口参数**: 参考 `API_DETAILED_PARAMS.md` 文档
+- **包含内容**: 完整的20个Dify工作流API接口定义、TypeScript类型、SSE流式响应格式
+- **使用场景**: 开发新接口时，无需重复询问参数结构，直接参考文档即可
+
+### SSE流式响应
+- **支持模式**: 项目原生支持SSE流式响应
+- **处理方式**: 使用Hook-Fetch库的 `useHookFetch` 处理流式数据
+- **事件类型**: 支持11种SSE事件类型，包括message、message_end、error等
+- **具体实现**: 参考 `src/pages/chat/layouts/chatWithId/index.vue` 中的流式处理实现

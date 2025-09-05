@@ -7,7 +7,7 @@ import { useLoginFormStore } from '@/stores/modules/loginForm';
 import AccountPassword from './components/FormLogin/AccountPassword.vue';
 import RegistrationForm from './components/FormLogin/RegistrationForm.vue';
 import QrCodeLogin from './components/QrCodeLogin/index.vue';
-
+import { APP_NAME } from '@/config';
 const userStore = useUserStore();
 const loginFromStore = useLoginFormStore();
 
@@ -32,10 +32,6 @@ watch(
   { immediate: true },
 );
 
-// 切换二维码登录
-function toggleLoginMode() {
-  isQrMode.value = !isQrMode.value;
-}
 
 // 点击遮罩层关闭对话框（触发过渡动画）
 function handleMaskClick() {
@@ -61,24 +57,24 @@ function onAfterLeave() {
           <div class="left-section">
             <div class="logo-wrap">
               <img :src="logoPng" class="logo-img">
-              <span class="logo-text">Element Plus X</span>
+              <span class="logo-text">{{ APP_NAME }}</span>
             </div>
             <div class="ad-banner">
               <SvgIcon name="p-bangong" class-name="animate-up-down" />
             </div>
           </div>
           <div class="right-section">
-            <div class="mode-toggle" @click.stop="toggleLoginMode">
+            <!-- <div class="mode-toggle" @click.stop="toggleLoginMode">
               <SvgIcon v-if="!isQrMode" name="erweimadenglu" />
               <SvgIcon v-else name="zhanghaodenglu" />
-            </div>
+            </div> -->
             <div class="content-wrapper">
               <div v-if="!isQrMode" class="form-box">
                 <!-- 表单容器，父组件可以自定定义表单插槽 -->
                 <slot name="form">
                   <!-- 父组件不用插槽则显示默认表单 默认使用 AccountPassword 组件 -->
                   <div v-if="loginFormType === 'AccountPassword'" class="form-container">
-                    <span class="content-title"> 登录后免费使用完整功能 </span>
+                    <span class="content-title"> 欢迎登录 {{ APP_NAME }} </span>
 
                     <el-divider content-position="center">
                       账号密码登录
@@ -88,7 +84,7 @@ function onAfterLeave() {
                   </div>
 
                   <div v-if="loginFormType === 'RegistrationForm'" class="form-container">
-                    <span class="content-title"> 登录后免费使用完整功能 </span>
+                    <span class="content-title"> 欢迎注册 {{ APP_NAME }} </span>
 
                     <el-divider content-position="center">
                       邮箱注册账号

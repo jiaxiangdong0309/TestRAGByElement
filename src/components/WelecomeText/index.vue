@@ -3,11 +3,12 @@
 import { Typewriter } from 'vue-element-plus-x';
 import { useTimeGreeting } from '@/hooks/useTimeGreeting';
 import { useUserStore } from '@/stores';
+import { APP_NAME } from '@/config';
 
 const greeting = useTimeGreeting();
 const userStore = useUserStore();
 
-const username = computed(() => userStore.userInfo?.username ?? '我是 Element Plus X');
+const username = computed(() => userStore.userInfo?.username ?? `我是 ${APP_NAME}`);
 </script>
 
 <template>

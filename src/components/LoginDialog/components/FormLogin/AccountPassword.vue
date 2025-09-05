@@ -4,7 +4,6 @@ import type { FormInstance, FormRules } from 'element-plus';
 import type { LoginDTO } from '@/api/auth/types';
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { login } from '@/api';
 import { useUserStore } from '@/stores';
 import { useLoginFormStore } from '@/stores/modules/loginForm';
 import { useSessionStore } from '@/stores/modules/session';
@@ -29,10 +28,12 @@ const router = useRouter();
 async function handleSubmit() {
   try {
     await formRef.value?.validate();
-    const res = await login(formModel);
-    console.log(res, 'res');
-    res.data.token && userStore.setToken(res.data.token);
-    res.data.userInfo && userStore.setUserInfo(res.data.userInfo);
+    // const res = await login(formModel);
+    // console.log(res, 'res');
+    // res.data.token && userStore.setToken(res.data.token);
+    // res.data.userInfo && userStore.setUserInfo(res.data.userInfo);
+    userStore.setToken(formModel.password);
+    userStore.setUserInfo({ username: formModel.username,token: formModel.password });
     ElMessage.success('登录成功');
     userStore.closeLoginDialog();
     // 立刻获取回话列表
