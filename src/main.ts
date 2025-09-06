@@ -1,6 +1,6 @@
 // 引入ElementPlus所有图标
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { createApp } from 'vue';
 import ElementPlusX from 'vue-element-plus-x';
 import App from './App.vue';
@@ -16,6 +16,7 @@ const app = createApp(App);
 
 app.use(router);
 app.use(ElMessage);
+app.use(ElMessageBox);
 app.use(ElementPlusX);
 // 注册ElementPlus所有图标
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

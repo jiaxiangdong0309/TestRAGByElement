@@ -9,4 +9,6 @@ export default store;
 
 // export * from './modules/chat';
 export * from './modules/design';
+export * from './modules/dify';
+export * from './modules/files';
 export * from './modules/user';

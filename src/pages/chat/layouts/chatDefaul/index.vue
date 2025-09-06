@@ -6,10 +6,12 @@ import ModelSelect from '@/components/ModelSelect/index.vue';
 import WelecomeText from '@/components/WelecomeText/index.vue';
 import { useUserStore } from '@/stores';
 import { useFilesStore } from '@/stores/modules/files';
-import { useSessionStore } from '@/stores/modules/session';
+import { useDifyStore } from '@/stores/modules/dify';
+import { ref, watch, nextTick } from 'vue';
+import { Attachments, Sender } from 'vue-element-plus-x';
 
 const userStore = useUserStore();
-const sessionStore = useSessionStore();
+const sessionStore = useDifyStore();
 const filesStore = useFilesStore();
 
 const senderValue = ref('');
@@ -18,10 +20,10 @@ const senderRef = ref();
 async function handleSend() {
   localStorage.setItem('chatContent', senderValue.value);
   await sessionStore.createSessionList({
-    userId: userStore.userInfo?.userId as number,
-    sessionContent: senderValue.value,
-    sessionTitle: senderValue.value.slice(0, 10),
-    remark: senderValue.value.slice(0, 10),
+    user: userStore.userInfo?.nickName || "",
+    query: senderValue.value,
+    response_mode: "streaming",
+    inputs:[],
   });
 }
 
