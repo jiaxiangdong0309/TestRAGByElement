@@ -186,6 +186,7 @@ async function loadConversationHistory(conversationId: string) {
 // 封装数据处理逻辑
 function handleDataChunk(chunk: AnyObject) {
   try {
+
     // 确保 bubbleItems.value 是数组
     if (!bubbleItems.value) {
       bubbleItems.value = [];
@@ -205,14 +206,62 @@ function handleDataChunk(chunk: AnyObject) {
     }
 
     if (event === 'message' && answer) {
+      // 打印每次获取到的AI回复内容
+      console.log('🤖 [AI回复内容]', {
+        event,
+        answer,
+        answerLength: answer.length,
+        timestamp: new Date().toISOString()
+      });
+
+      // 检查是否包含思考标签
+      const thinkStart = answer.includes('<think>');
+      const thinkEnd = answer.includes('</think>');
+
+      console.log('🤔 [思考状态检测]', {
+        answer,
+        thinkStart,
+        thinkEnd,
+        isThinking,
+        timestamp: new Date().toISOString()
+      });
+
+      if (thinkStart) {
+        isThinking = true;
+        console.log('🧠 [开始思考]');
+      }
+      if (thinkEnd) {
+        isThinking = false;
+        console.log('💡 [结束思考]');
+      }
+
       // 处理消息内容
       if (bubbleItems.value.length) {
-        bubbleItems.value[bubbleItems.value.length - 1].content += answer;
-        bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = 'end';
-        bubbleItems.value[bubbleItems.value.length - 1].loading = false;
+        const lastMessage = bubbleItems.value[bubbleItems.value.length - 1];
+
+        if (isThinking) {
+          // 思考阶段：显示思考内容
+          lastMessage.thinkingStatus = 'thinking';
+          lastMessage.loading = false;
+          lastMessage.thinlCollapse = true;
+          lastMessage.reasoning_content += answer
+            .replace('<think>', '')
+            .replace('</think>', '');
+        } else {
+          // 回答阶段：显示最终内容
+          lastMessage.content += answer;
+          lastMessage.thinkingStatus = 'end';
+          lastMessage.loading = false;
+        }
       }
     } else if (event === 'message_end') {
       // 消息结束
+      console.log('✅ [消息结束]', {
+        event,
+        timestamp: new Date().toISOString(),
+        totalMessages: bubbleItems.value.length
+      });
+
       if (bubbleItems.value.length) {
         bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = 'end';
         bubbleItems.value[bubbleItems.value.length - 1].loading = false;
@@ -220,7 +269,11 @@ function handleDataChunk(chunk: AnyObject) {
       }
     } else if (event === 'error') {
       // 处理错误
-      console.error('Dify API 错误:', chunk);
+      console.error('❌ [Dify API 错误]', {
+        event,
+        chunk,
+        timestamp: new Date().toISOString()
+      });
     }
 
     // 保留原有的思考链处理逻辑（如果API支持的话）
@@ -232,31 +285,6 @@ function handleDataChunk(chunk: AnyObject) {
       bubbleItems.value[bubbleItems.value.length - 1].reasoning_content += reasoningChunk;
     }
 
-    // 处理 <think></think> 格式的思考内容
-    const parsedChunk = chunk.choices?.[0]?.delta?.content;
-    if (parsedChunk && bubbleItems.value.length) {
-      const lastMessage = bubbleItems.value[bubbleItems.value.length - 1];
-      const thinkStart = parsedChunk.includes('<think>');
-      const thinkEnd = parsedChunk.includes('</think>');
-      if (thinkStart) {
-        isThinking = true;
-      }
-      if (thinkEnd) {
-        isThinking = false;
-      }
-      if (isThinking) {
-        lastMessage.thinkingStatus = 'thinking';
-        lastMessage.loading = true;
-        lastMessage.thinlCollapse = true;
-        lastMessage.reasoning_content += parsedChunk
-          .replace('<think>', '')
-          .replace('</think>', '');
-      } else {
-        lastMessage.thinkingStatus = 'end';
-        lastMessage.loading = false;
-        lastMessage.content += parsedChunk;
-      }
-    }
   }
   catch (err) {
     console.error('解析数据时出错:', err);
@@ -397,7 +425,11 @@ watch(
   <div class="chat-with-id-container">
     <div class="chat-warp">
       <BubbleList ref="bubbleListRef" :list="bubbleItems" max-height="calc(100vh - 240px)">
+        <template #loading>
+          <div>loading...</div>
+        </template>
         <template #header="{ item }">
+
           <Thinking
             v-if="item.reasoning_content" v-model="item.thinlCollapse" :content="item.reasoning_content"
             :status="item.thinkingStatus" class="thinking-chain-warp" @change="handleChange"
