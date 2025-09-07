@@ -7,17 +7,15 @@ import type { FilesCardProps } from 'vue-element-plus-x/types/FilesCard';
 import type { ThinkingStatus } from 'vue-element-plus-x/types/Thinking';
 import { useHookFetch } from 'hook-fetch/vue';
 import { Sender } from 'vue-element-plus-x';
-import { useRoute } from 'vue-router';
-import { send } from '@/api';
+import { send_message_stream } from '@/api/dify';
 import FilesSelect from '@/components/FilesSelect/index.vue';
-import ModelSelect from '@/components/ModelSelect/index.vue';
-import { useChatStore } from '@/stores/modules/chat';
+import StepSelect from '@/components/StepSelect/index.vue';
 import { useFilesStore } from '@/stores/modules/files';
-import { useModelStore } from '@/stores/modules/model';
 import { useUserStore } from '@/stores/modules/user';
+import { useDifyStore } from '@/stores/modules/dify';
 
 type MessageItem = BubbleProps & {
-  key: number;
+  key: string;
   role: 'ai' | 'user' | 'system';
   avatar: string;
   thinkingStatus?: ThinkingStatus;
@@ -25,11 +23,9 @@ type MessageItem = BubbleProps & {
   reasoning_content?: string;
 };
 
-const route = useRoute();
-const chatStore = useChatStore();
-const modelStore = useModelStore();
 const filesStore = useFilesStore();
 const userStore = useUserStore();
+const difyStore = useDifyStore();
 
 // 用户头像
 const avatar = computed(() => {
@@ -38,12 +34,18 @@ const avatar = computed(() => {
 });
 
 const inputValue = ref('');
+const stepSelectRef = ref();
 const senderRef = ref<InstanceType<typeof Sender> | null>(null);
 const bubbleItems = ref<MessageItem[]>([]);
 const bubbleListRef = ref<BubbleListInstance | null>(null);
 
+// 防止重复请求的标志
+let isLoadingHistory = false;
+// SSE流进行中的标志
+let isSSEStreaming = false;
+
 const { stream, loading: isLoading, cancel } = useHookFetch({
-  request: send,
+  request: send_message_stream,
   onError: (err) => {
     console.warn('测试错误拦截', err);
   },
@@ -51,66 +53,189 @@ const { stream, loading: isLoading, cancel } = useHookFetch({
 // 记录进入思考中
 let isThinking = false;
 
+// 监听 store 中的会话ID变化
 watch(
-  () => route.params?.id,
-  async (_id_) => {
-    if (_id_) {
-      if (_id_ !== 'not_login') {
-        // 判断的当前会话id是否有聊天记录，有缓存则直接赋值展示
-        if (chatStore.chatMap[`${_id_}`] && chatStore.chatMap[`${_id_}`].length) {
-          bubbleItems.value = chatStore.chatMap[`${_id_}`] as MessageItem[];
-          // 滚动到底部
-          setTimeout(() => {
-            bubbleListRef.value!.scrollToBottom();
-          }, 350);
-          return;
+  () => difyStore.getCurrentConversationId(),
+  async (newId, oldId) => {
+    // 防止重复调用：如果ID没有实际变化，则不执行
+    if (newId === oldId) {
+      return;
+    }
+
+    // 防止重复调用：如果正在加载中，则跳过
+    if (isLoadingHistory) {
+      return;
+    }
+
+    if (newId) {
+      // 判断是否需要更新对话列表
+      if (newId !== 'newChat') {
+        // 从历史会话切换，需要更新对话列表
+        // 但如果SSE流正在进行中，则跳过加载历史记录
+        if (!isSSEStreaming) {
+          await loadConversationHistory(newId);
+        } else {
+          console.log('🔍 [DEBUG] SSE流进行中，跳过加载历史记录');
         }
-
-        // 无缓存则请求聊天记录
-        await chatStore.requestChatList(`${_id_}`);
-        // 请求聊天记录后，赋值回显，并滚动到底部
-        bubbleItems.value = chatStore.chatMap[`${_id_}`] as MessageItem[];
-
-        // 滚动到底部
-        setTimeout(() => {
-          bubbleListRef.value!.scrollToBottom();
-        }, 350);
+      } else if (newId === 'newChat') {
+        // 开始新会话，清空当前消息
+        bubbleItems.value = [];
       }
 
-      // 如果本地有发送内容 ，则直接发送
-      const v = localStorage.getItem('chatContent');
-      if (v) {
-        // 发送消息
-        console.log('发送消息 v', v);
-        setTimeout(() => {
-          startSSE(v);
-        }, 350);
+      // 如果本地有发送内容，则直接发送
+      const chatContentStr = localStorage.getItem('chatContent');
+      if (chatContentStr) {
+        let chatData;
+        try {
+          chatData = JSON.parse(chatContentStr);
+        } catch {
+          // 如果解析失败，按原文本处理
+          chatData = { query: chatContentStr };
+        }
 
+        // 如果是newChat，调用difyStore的send_message方法
+        if (newId === 'newChat') {
+          stepSelectRef.value?.setCurrentStep(chatData.step);
+          setTimeout(async () => {
+            startSSE(chatData.query, chatData.step);
+          }, 500);
+        }
         localStorage.removeItem('chatContent');
       }
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 );
+
+// 加载会话历史记录
+async function loadConversationHistory(conversationId: string) {
+  // 防止重复请求
+  if (isLoadingHistory) {
+    return;
+  }
+
+  isLoadingHistory = true;
+
+  try {
+    // 请求聊天记录
+    const res = await difyStore.getConversationHistory(conversationId);
+    if (res && res.data && res.data) {
+      // 处理Dify API返回的消息格式
+      // 每个item包含完整的对话轮次（用户消息+AI回复），需要拆分成两条UI消息
+      const messages: MessageItem[] = [];
+
+      res.data.forEach((item: any) => {
+        // 添加用户消息
+        if (item.query) {
+          messages.push({
+            key: `${item.id}_user`,
+            avatar: avatar.value,
+            avatarSize: '32px' as const,
+            role: 'user',
+            placement: 'end',
+            isMarkdown: false,
+            loading: false,
+            content: item.query,
+            reasoning_content: '',
+            thinkingStatus: 'end' as const,
+            thinlCollapse: false,
+            typing: false,
+          });
+        }
+
+        // 添加AI回复消息
+        if (item.answer) {
+          messages.push({
+            key: `${item.id}_assistant`,
+            avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
+            avatarSize: '32px' as const,
+            role: 'system',
+            placement: 'start',
+            isMarkdown: true,
+            loading: false,
+            content: item.answer,
+            reasoning_content: '',
+            thinkingStatus: 'end' as const,
+            thinlCollapse: false,
+            typing: false,
+          });
+        }
+      });
+
+      // 赋值回显
+      bubbleItems.value = messages;
+    }
+
+  // 滚动到底部
+  setTimeout(() => {
+    try {
+      if (bubbleListRef.value && typeof bubbleListRef.value.scrollToBottom === 'function') {
+        bubbleListRef.value.scrollToBottom();
+      }
+    } catch (error) {
+      console.error('❌ [scrollToBottom错误]', error);
+    }
+  }, 350);
+  } catch (error) {
+    console.error('❌ [loadConversationHistory错误]', error);
+  } finally {
+    isLoadingHistory = false;
+  }
+}
 
 // 封装数据处理逻辑
 function handleDataChunk(chunk: AnyObject) {
   try {
-    const reasoningChunk = chunk.choices?.[0].delta.reasoning_content;
-    if (reasoningChunk) {
-      // 开始思考链状态
+    // 确保 bubbleItems.value 是数组
+    if (!bubbleItems.value) {
+      bubbleItems.value = [];
+    }
+
+    // 处理 Dify API 的 SSE 响应格式
+    const event = chunk.event;
+    const answer = chunk.answer;
+    const conversationId = chunk.conversation_id;
+
+    // 如果获取到新的 conversation_id，更新 store
+    if (conversationId && difyStore.getCurrentConversationId() === 'newChat') {
+      console.log('获取到新的 conversation_id:', conversationId);
+      // 更新 store 中的会话ID，但不触发历史记录加载
+      // 等到SSE流结束后再加载历史记录
+      difyStore.setCurrentConversationId(conversationId, false);
+    }
+
+    if (event === 'message' && answer) {
+      // 处理消息内容
+      if (bubbleItems.value.length) {
+        bubbleItems.value[bubbleItems.value.length - 1].content += answer;
+        bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = 'end';
+        bubbleItems.value[bubbleItems.value.length - 1].loading = false;
+      }
+    } else if (event === 'message_end') {
+      // 消息结束
+      if (bubbleItems.value.length) {
+        bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = 'end';
+        bubbleItems.value[bubbleItems.value.length - 1].loading = false;
+        bubbleItems.value[bubbleItems.value.length - 1].typing = false;
+      }
+    } else if (event === 'error') {
+      // 处理错误
+      console.error('Dify API 错误:', chunk);
+    }
+
+    // 保留原有的思考链处理逻辑（如果API支持的话）
+    const reasoningChunk = chunk.choices?.[0]?.delta?.reasoning_content;
+    if (reasoningChunk && bubbleItems.value.length) {
       bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = 'thinking';
       bubbleItems.value[bubbleItems.value.length - 1].loading = true;
       bubbleItems.value[bubbleItems.value.length - 1].thinlCollapse = true;
-      if (bubbleItems.value.length) {
-        bubbleItems.value[bubbleItems.value.length - 1].reasoning_content += reasoningChunk;
-      }
+      bubbleItems.value[bubbleItems.value.length - 1].reasoning_content += reasoningChunk;
     }
 
-    // 另一种思考中形式，content中有 <think></think> 的格式
-    // 一开始匹配到 <think> 开始，匹配到 </think> 结束，并处理标签中的内容为思考内容
-    const parsedChunk = chunk.choices?.[0].delta.content;
-    if (parsedChunk) {
+    // 处理 <think></think> 格式的思考内容
+    const parsedChunk = chunk.choices?.[0]?.delta?.content;
+    if (parsedChunk && bubbleItems.value.length) {
+      const lastMessage = bubbleItems.value[bubbleItems.value.length - 1];
       const thinkStart = parsedChunk.includes('<think>');
       const thinkEnd = parsedChunk.includes('</think>');
       if (thinkStart) {
@@ -120,28 +245,20 @@ function handleDataChunk(chunk: AnyObject) {
         isThinking = false;
       }
       if (isThinking) {
-        // 开始思考链状态
-        bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = 'thinking';
-        bubbleItems.value[bubbleItems.value.length - 1].loading = true;
-        bubbleItems.value[bubbleItems.value.length - 1].thinlCollapse = true;
-        if (bubbleItems.value.length) {
-          bubbleItems.value[bubbleItems.value.length - 1].reasoning_content += parsedChunk
-            .replace('<think>', '')
-            .replace('</think>', '');
-        }
-      }
-      else {
-        // 结束 思考链状态
-        bubbleItems.value[bubbleItems.value.length - 1].thinkingStatus = 'end';
-        bubbleItems.value[bubbleItems.value.length - 1].loading = false;
-        if (bubbleItems.value.length) {
-          bubbleItems.value[bubbleItems.value.length - 1].content += parsedChunk;
-        }
+        lastMessage.thinkingStatus = 'thinking';
+        lastMessage.loading = true;
+        lastMessage.thinlCollapse = true;
+        lastMessage.reasoning_content += parsedChunk
+          .replace('<think>', '')
+          .replace('</think>', '');
+      } else {
+        lastMessage.thinkingStatus = 'end';
+        lastMessage.loading = false;
+        lastMessage.content += parsedChunk;
       }
     }
   }
   catch (err) {
-    // 这里如果使用了中断，会有报错，可以忽略不管
     console.error('解析数据时出错:', err);
   }
 }
@@ -151,29 +268,49 @@ function handleError(err: any) {
   console.error('Fetch error:', err);
 }
 
-async function startSSE(chatContent: string) {
+function submitMessage() {
+  const chatContent = inputValue.value;
+  const stepName = stepSelectRef.value?.getCurrentStep()?.name;
+  startSSE(chatContent, stepName);
+}
+
+
+async function startSSE(chatContent: string, stepName: string) {
+  // 判断是否登录
+  if (!userStore.token || !userStore.userInfo) {
+    // 未登录，打开登录弹框
+    userStore.openLoginDialog();
+    return;
+  }
+  console.log('jxd chatContent', chatContent, stepName);
+
   try {
+    // 设置SSE流进行中标志
+    isSSEStreaming = true;
+
     // 添加用户输入的消息
-    // console.log('chatContent', chatContent);
     // 清空输入框
     inputValue.value = '';
     addMessage(chatContent, true);
     addMessage('', false);
 
+
     // 这里有必要调用一下 BubbleList 组件的滚动到底部 手动触发 自动滚动
     bubbleListRef.value?.scrollToBottom();
 
-    for await (const chunk of stream({
-      messages: bubbleItems.value
-        .filter((item: any) => item.role === 'user')
-        .map((item: any) => ({
-          role: item.role,
-          content: item.content,
-        })),
-      sessionId: route.params?.id !== 'not_login' ? String(route.params?.id) : undefined,
-      userId: userStore.userInfo?.userId,
-      model: modelStore.currentModelInfo.modelName ?? '',
-    })) {
+    const data = {
+      inputs: {
+        step: stepName,
+      },
+      query: chatContent,
+      step: stepName,
+      conversation_id: (difyStore.getCurrentConversationId() !== 'newChat' && difyStore.getCurrentConversationId() !== null) ? difyStore.getCurrentConversationId()! : undefined,
+      user: String(userStore.userInfo?.username || ""),
+      auto_generate_name: difyStore.getCurrentConversationId() === 'newChat',
+    };
+
+    console.log('jxd data', data);
+    for await (const chunk of stream(data)) {
       handleDataChunk(chunk.result as AnyObject);
     }
   }
@@ -182,8 +319,11 @@ async function startSSE(chatContent: string) {
   }
   finally {
     console.log('数据接收完毕');
+    // 清除SSE流进行中标志
+    isSSEStreaming = false;
+
     // 停止打字器状态
-    if (bubbleItems.value.length) {
+    if (bubbleItems.value && bubbleItems.value.length) {
       bubbleItems.value[bubbleItems.value.length - 1].typing = false;
     }
   }
@@ -192,17 +332,24 @@ async function startSSE(chatContent: string) {
 // 中断请求
 async function cancelSSE() {
   cancel();
+  // 清除SSE流进行中标志
+  isSSEStreaming = false;
+
   // 结束最后一条消息打字状态
-  if (bubbleItems.value.length) {
+  if (bubbleItems.value && bubbleItems.value.length) {
     bubbleItems.value[bubbleItems.value.length - 1].typing = false;
   }
 }
 
 // 添加消息 - 维护聊天记录
 function addMessage(message: string, isUser: boolean) {
-  const i = bubbleItems.value.length;
+  // 确保 bubbleItems.value 是数组
+  if (!bubbleItems.value) {
+    bubbleItems.value = [];
+  }
+  const timestamp = Date.now();
   const obj: MessageItem = {
-    key: i,
+    key: `${timestamp}_${isUser ? 'user' : 'assistant'}`,
     avatar: isUser
       ? avatar.value
       : 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
@@ -271,7 +418,7 @@ watch(
         ref="senderRef" v-model="inputValue" class="chat-defaul-sender" :auto-size="{
           maxRows: 6,
           minRows: 2,
-        }" variant="updown" clearable allow-speech :loading="isLoading" @submit="startSSE" @cancel="cancelSSE"
+        }" variant="updown" clearable allow-speech :loading="isLoading" @submit="submitMessage" @cancel="cancelSSE"
       >
         <template #header>
           <div class="sender-header p-12px pt-6px pb-0px">
@@ -305,7 +452,7 @@ watch(
         <template #prefix>
           <div class="flex-1 flex items-center gap-8px flex-none w-fit overflow-hidden">
             <FilesSelect />
-            <ModelSelect />
+            <StepSelect ref="stepSelectRef" />
           </div>
         </template>
       </Sender>

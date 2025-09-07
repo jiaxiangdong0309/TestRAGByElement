@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
 import ChatDefaul from '@/pages/chat/layouts/chatDefaul/index.vue';
 import ChatWithId from '@/pages/chat/layouts/chatWithId/index.vue';
+import { useDifyStore } from '@/stores/modules/dify';
 
-const route = useRoute();
-const sessionId = computed(() => route.params?.id);
+const difyStore = useDifyStore();
+const currentConversationId = computed(() => difyStore.getCurrentConversationId());
 </script>
 
 <template>
   <div class="chat-container">
     <!-- 默认聊天页面 -->
-    <ChatDefaul v-if="!sessionId" />
+    <ChatDefaul v-if="!currentConversationId" />
     <!-- 带id的聊天页面 -->
     <ChatWithId v-else />
   </div>

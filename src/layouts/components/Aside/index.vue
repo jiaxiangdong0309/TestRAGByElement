@@ -1,38 +1,36 @@
 <!-- Aside 侧边栏 -->
 <script setup lang="ts">
-import type { ConversationItem } from 'vue-element-plus-x/types/Conversations';
-import type { ChatSessionVo } from '@/api/session/types';
-import { useRoute, useRouter } from 'vue-router';
-import { get_session } from '@/api';
+import type { ConversationItem as DifyConversationItem } from '@/api/dify/types';
+import { useRoute } from 'vue-router';
 import logo from '@/assets/images/logo.png';
-import SvgIcon from '@/components/SvgIcon/index.vue';
 import Collapse from '@/layouts/components/Header/components/Collapse.vue';
 import { useDesignStore } from '@/stores';
-import { useSessionStore } from '@/stores/modules/session';
+import { useDifyStore } from '@/stores/modules/dify';
 import { APP_NAME } from '@/config';
 const route = useRoute();
-const router = useRouter();
 const designStore = useDesignStore();
-const sessionStore = useSessionStore();
+const difyStore = useDifyStore();
 
 const sessionId = computed(() => route.params?.id);
-const conversationsList = computed(() => sessionStore.sessionList);
-const loadMoreLoading = computed(() => sessionStore.isLoadingMore);
+const conversationsList = computed(() => difyStore.sessionList);
+const loadMoreLoading = computed(() => difyStore.isLoadingMore);
 const active = ref<string | undefined>();
 
 onMounted(async () => {
   // 获取会话列表
-  await sessionStore.requestSessionList();
+  await difyStore.requestSessionList();
   // 高亮最新会话
   if (conversationsList.value.length > 0 && sessionId.value) {
-    const currentSessionRes = await get_session(`${sessionId.value}`);
-    // 通过 ID 查询详情，设置当前会话 (因为有分页)
-    sessionStore.setCurrentSession(currentSessionRes.data);
+    // 通过 ID 查找当前会话
+    const currentSession = conversationsList.value.find(item => item.id === sessionId.value);
+    if (currentSession) {
+      difyStore.setCurrentSession(currentSession);
+    }
   }
 });
 
 watch(
-  () => sessionStore.currentSession,
+  () => difyStore.currentSession,
   (newValue) => {
     active.value = newValue ? `${newValue.id}` : undefined;
   },
@@ -41,29 +39,25 @@ watch(
 // 创建会话
 function handleCreatChat() {
   // 创建会话, 跳转到默认聊天
-  sessionStore.createSessionBtn();
+  difyStore.createSessionBtn();
 }
 
 // 切换会话
-function handleChange(item: ConversationItem<ChatSessionVo>) {
-  sessionStore.setCurrentSession(item);
-  router.replace({
-    name: 'chatWithId',
-    params: {
-      id: item.id,
-    },
-  });
+function handleChange(item: DifyConversationItem) {
+  difyStore.setCurrentSession(item);
+  difyStore.setCurrentConversationId(item.id, false);
+  // 不需要路由跳转，通过store中的currentConversationId控制组件显示
 }
 
 // 处理组件触发的加载更多事件
 async function handleLoadMore() {
-  if (!sessionStore.hasMore)
+  if (!difyStore.hasMore)
     return; // 无更多数据时不加载
-  await sessionStore.loadMoreSessions();
+  await difyStore.requestSessionList(true);
 }
 
 // 右键菜单
-function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo>) {
+function handleMenuCommand(command: string, item: DifyConversationItem) {
   switch (command) {
     case 'delete':
       ElMessageBox.confirm('删除后，聊天记录将不可恢复。', '确定删除对话？', {
@@ -77,11 +71,11 @@ function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo
       })
         .then(() => {
           // 删除会话
-          sessionStore.deleteSessions([item.id!]);
+          difyStore.deleteSessions([item.id!]);
           nextTick(() => {
             if (item.id === active.value) {
               // 如果删除当前会话 返回到默认页
-              sessionStore.createSessionBtn();
+              difyStore.createSessionBtn();
             }
           });
         })
@@ -97,7 +91,7 @@ function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo
         confirmButtonClass: 'el-button--primary',
         cancelButtonClass: 'el-button--info',
         roundButton: true,
-        inputValue: item.sessionTitle, // 设置默认值
+        inputValue: item.name, // 设置默认值
         autofocus: false,
         inputValidator: (value) => {
           if (!value) {
@@ -106,11 +100,10 @@ function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo
           return true;
         },
       }).then(({ value }) => {
-        sessionStore
+        difyStore
           .updateSession({
-            id: item.id!,
-            sessionTitle: value,
-            sessionContent: item.sessionContent,
+            ...item,
+            name: value,
           })
           .then(() => {
             ElMessage({
@@ -119,10 +112,10 @@ function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo
             });
             nextTick(() => {
               // 如果是当前会话，则更新当前选中会话信息
-              if (sessionStore.currentSession?.id === item.id) {
-                sessionStore.setCurrentSession({
+              if (difyStore.currentSession?.id === item.id) {
+                difyStore.setCurrentSession({
                   ...item,
-                  sessionTitle: value,
+                  name: value,
                 });
               }
             });
@@ -161,7 +154,7 @@ function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo
               <Plus />
             </el-icon>
             <span class="creat-chat-text">新对话</span>
-            <SvgIcon name="ctrl+k" size="37" />
+            <!-- <SvgIcon name="ctrl+k" size="37" /> -->
           </div>
         </div>
 
@@ -176,7 +169,8 @@ function handleMenuCommand(command: string, item: ConversationItem<ChatSessionVo
               show-built-in-menu
               groupable
               row-key="id"
-              label-key="sessionTitle"
+              label-key="name"
+              group-key="group"
               tooltip-placement="right"
               :load-more="handleLoadMore"
               :load-more-loading="loadMoreLoading"

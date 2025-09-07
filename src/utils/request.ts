@@ -15,7 +15,7 @@ interface BaseResponse {
 
 // 根据环境选择baseURL
 const getBaseURL = () => {
-  // 开发环境使用代理，生产环境使用直接URL
+  // 开发环境使用代理避免CORS问题，生产环境使用直接URL
   if (import.meta.env.DEV) {
     return '/api'; // 使用vite代理
   }

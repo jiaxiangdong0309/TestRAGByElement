@@ -6,11 +6,11 @@ import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores';
 import { useLoginFormStore } from '@/stores/modules/loginForm';
-import { useSessionStore } from '@/stores/modules/session';
-
+import { useDifyStore } from '@/stores/modules/dify';
+import { API_KEY } from '@/config/localConfig';
 const userStore = useUserStore();
-const sessionStore = useSessionStore();
-const loginFromStore = useLoginFormStore();
+const difyStore = useDifyStore();
+const loginFormStore = useLoginFormStore();
 
 const formRef = ref<FormInstance>();
 
@@ -32,12 +32,12 @@ async function handleSubmit() {
     // console.log(res, 'res');
     // res.data.token && userStore.setToken(res.data.token);
     // res.data.userInfo && userStore.setUserInfo(res.data.userInfo);
-    userStore.setToken(formModel.password);
+    userStore.setToken(API_KEY);
     userStore.setUserInfo({ username: formModel.username,token: formModel.password });
     ElMessage.success('登录成功');
     userStore.closeLoginDialog();
-    // 立刻获取回话列表
-    await sessionStore.requestSessionList(1, true);
+    // 立刻获取会话列表
+    await difyStore.requestSessionList(false, true);
     router.replace('/');
   }
   catch (error) {
@@ -90,7 +90,7 @@ async function handleSubmit() {
       <span>没有账号？</span>
       <span
         class="c-[var(--el-color-primar,#409eff)] cursor-pointer"
-        @click="loginFromStore.setLoginFormType('RegistrationForm')"
+        @click="loginFormStore.setLoginFormType('RegistrationForm')"
       >
         立即注册
       </span>

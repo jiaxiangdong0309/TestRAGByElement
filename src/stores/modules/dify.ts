@@ -1,29 +1,43 @@
-import type {ConversationsQueryParams, ChatMessageItem, ChatMessagesRequest } from '@/api/dify/types';
+import type {ConversationsQueryParams, ChatMessagesRequest, ConversationItem } from '@/api/dify/types';
 import { ChatLineRound } from '@element-plus/icons-vue';
 import { defineStore } from 'pinia';
 import { markRaw, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import {
-  send_chat_message,
+  send_message as api_send_message,
   get_conversations,
+  get_conversation_messages,
   delete_conversation,
   update_dify_session,
 } from '@/api';
 import { useUserStore } from './user';
 
-export const useDifyStore = defineStore('session', () => {
+export const useDifyStore = defineStore('dify', () => {
   const router = useRouter();
   const userStore = useUserStore();
 
   // 当前选中的会话信息
-  const currentSession = ref<ChatMessageItem | null>(null);
+  const currentSession = ref<ConversationItem | null>(null);
   // 设置当前会话
-  const setCurrentSession = (session: ChatMessageItem | null) => {
+  const setCurrentSession = (session: ConversationItem | null) => {
     currentSession.value = session;
   };
 
+  // 当前会话ID管理
+  const currentConversationId = ref<string | null>(null);
+  const isNewConversation = ref(false); // 标识是否为新创建的会话
+
+  // 设置当前会话ID
+  const setCurrentConversationId = (id: string | null, isNew: boolean = false) => {
+    currentConversationId.value = id;
+    isNewConversation.value = isNew;
+  };
+
+  // 获取当前会话ID
+  const getCurrentConversationId = () => currentConversationId.value;
+
   // 会话列表核心状态
-  const sessionList = ref<ChatMessageItem[]>([]); // 会话数据列表
+  const sessionList = ref<ConversationItem[]>([]); // 会话数据列表
   const lastId = ref<string | undefined>(undefined); // 当前页最后一条记录的ID
   const pageSize = ref(25); // 每页显示数量
   const hasMore = ref(true); // 是否还有更多数据
@@ -35,6 +49,7 @@ export const useDifyStore = defineStore('session', () => {
     try {
       // 清空当前选中会话信息
       setCurrentSession(null);
+      setCurrentConversationId(null, true);
       router.replace({ name: 'chat' });
     }
     catch (error) {
@@ -57,8 +72,10 @@ export const useDifyStore = defineStore('session', () => {
     isLoadingMore.value = isLoadMore; // 加载更多时标记为加载更多
 
     try {
+      const userParam = String(userStore.userInfo?.userId || userStore.userInfo?.username || '');
+
       const params: ConversationsQueryParams = {
-        user: String(userStore.userInfo?.userId),
+        user: userParam,
         limit: pageSize.value,
         sort_by: '-created_at',
         ...(isLoadMore && lastId.value ? { last_id: lastId.value } : {}),
@@ -66,8 +83,15 @@ export const useDifyStore = defineStore('session', () => {
 
       const resArr = await get_conversations(params);
 
+      // 检查响应是否成功
+      if (!resArr || !resArr.data) {
+        console.error('API 响应格式错误:', resArr);
+        sessionList.value = [];
+        return;
+      }
+
       // 预处理会话分组 并添加前缀图标
-      const res = processSessions(resArr.data.data);
+      const res = processSessions(resArr.data);
 
       if (isLoadMore) {
         // 加载更多：追加到列表末尾
@@ -84,7 +108,7 @@ export const useDifyStore = defineStore('session', () => {
 
       // 判断是否还有更多数据
       if (!force)
-        hasMore.value = resArr.data.has_more;
+        hasMore.value = resArr.has_more;
     }
     catch (error) {
       console.error('requestSessionList错误:', error);
@@ -96,7 +120,7 @@ export const useDifyStore = defineStore('session', () => {
   };
 
   // 发送消息后创建新会话
-  const createSessionList = async (data: Omit<ChatMessagesRequest, 'id'>) => {
+  const send_message = async (data: Omit<ChatMessagesRequest, 'id'>) => {
     if (!userStore.token) {
       router.replace({
         name: 'chatWithId',
@@ -108,7 +132,7 @@ export const useDifyStore = defineStore('session', () => {
     }
 
     try {
-      const res = await send_chat_message(data);
+      const res = await api_send_message(data);
       // 创建会话后立刻刷新列表（新会话会出现在第一页）
       await requestSessionList(false, true);
       // 并将当前勾选信息设置为新增的会话信息
@@ -133,11 +157,11 @@ export const useDifyStore = defineStore('session', () => {
   };
 
   // 更新会话（供组件调用）
-  const updateSession = async (item: ChatMessageItem) => {
+  const updateSession = async (item: ConversationItem) => {
     try {
-      await update_dify_session(item.conversation_id, {
-        name: item.query, // 使用 query 作为会话名称
-        user: String(userStore.userInfo?.userId),
+      await update_dify_session(item.id, {
+        name: item.name,
+        user: String(userStore.userInfo?.userId || userStore.userInfo?.username || ''),
       });
       // 更新会话后刷新列表
       await requestSessionList(false, true);
@@ -150,7 +174,7 @@ export const useDifyStore = defineStore('session', () => {
   // 删除会话（供组件调用）
   const deleteSessions = async (ids: string[]) => {
     try {
-      await delete_conversation(ids[0], { user: String(userStore.userInfo?.userId) });
+      await delete_conversation(ids[0], { user: String(userStore.userInfo?.userId || userStore.userInfo?.username || '') });
       // 删除会话后刷新列表
       await requestSessionList(false, true);
     }
@@ -159,12 +183,31 @@ export const useDifyStore = defineStore('session', () => {
     }
   };
 
+  // 获取会话历史记录（供组件调用）
+  const getConversationHistory = async (conversationId: string, firstId?: string, limit?: number) => {
+    try {
+      const params = {
+        conversation_id: conversationId,
+        user: String(userStore.userInfo?.userId || userStore.userInfo?.username || ''),
+        ...(firstId && { first_id: firstId }),
+        ...(limit && { limit }),
+      };
+      const res = await get_conversation_messages(params);
+      return res;
+    }
+    catch (error) {
+      console.error('❌ [getConversationHistory错误]:', error);
+      return null;
+    }
+  };
+
   // 在获取会话列表后添加预处理逻辑（示例）
-  function processSessions(sessions: ChatMessageItem[]) {
+  function processSessions(sessions: ConversationItem[]) {
     const currentDate = new Date();
 
     return sessions.map((session) => {
-      const createDate = new Date(session.created_at!);
+      // created_at 是 Unix 时间戳（秒），需要转换为毫秒
+      const createDate = new Date(session.created_at * 1000);
       const diffDays = Math.floor(
         (currentDate.getTime() - createDate.getTime()) / (1000 * 60 * 60 * 24),
       );
@@ -196,6 +239,11 @@ export const useDifyStore = defineStore('session', () => {
     currentSession,
     // 设置当前会话
     setCurrentSession,
+    // 当前会话ID管理
+    currentConversationId,
+    isNewConversation,
+    setCurrentConversationId,
+    getCurrentConversationId,
     // 列表状态
     sessionList,
     lastId,
@@ -205,10 +253,11 @@ export const useDifyStore = defineStore('session', () => {
     isLoadingMore,
     // 列表方法
     createSessionBtn,
-    createSessionList,
+    send_message,
     requestSessionList,
     loadMoreSessions,
     updateSession,
     deleteSessions,
+    getConversationHistory,
   };
 });

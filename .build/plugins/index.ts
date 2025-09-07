@@ -19,7 +19,15 @@ function plugins({ mode, command }: ConfigEnv): PluginOption[] {
       envPrefix: 'VITE_',
       filePath: path.join(root, 'types', 'import_meta.d.ts'),
     }),
-    vue(),
+    vue({
+      // 启用 Vue DevTools 支持
+      template: {
+        compilerOptions: {
+          // 开发模式下启用组件名显示
+          isCustomElement: () => false,
+        },
+      },
+    }),
     AutoImport({
       imports: ['vue'],
       eslintrc: {

@@ -3,10 +3,10 @@
 import Popover from '@/components/Popover/index.vue';
 import SvgIcon from '@/components/SvgIcon/index.vue';
 import { useUserStore } from '@/stores';
-import { useSessionStore } from '@/stores/modules/session';
+import { useDifyStore } from '@/stores/modules/dify';
 
 const userStore = useUserStore();
-const sessionStore = useSessionStore();
+const difyStore = useDifyStore();
 const src = computed(
   () => userStore.userInfo?.avatar ?? 'https://avatars.githubusercontent.com/u/76239030',
 );
@@ -67,9 +67,9 @@ function handleClick(item: any) {
         .then(async () => {
           // 在这里执行退出方法
           await userStore.logout();
-          // 清空回话列表并回到默认页
-          await sessionStore.requestSessionList(1, true);
-          await sessionStore.createSessionBtn();
+          // 清空会话列表并回到默认页
+          await difyStore.requestSessionList(false, true);
+          await difyStore.createSessionBtn();
           ElMessage({
             type: 'success',
             message: '退出成功',

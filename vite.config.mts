@@ -30,7 +30,7 @@ export default defineConfig((cnf) => {
     server: {
       proxy: {
         '/api': {
-          target: 'http://dify-contest.hewa.cn/v1',
+          target: 'https://dify-contest.hewa.cn/v1',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
           configure: (proxy, _options) => {
