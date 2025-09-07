@@ -1,5 +1,6 @@
 <!-- 每个回话对应的聊天内容 -->
 <script setup lang="ts">
+import { ref, computed, watch, nextTick } from 'vue';
 import type { AnyObject } from 'typescript-api-pro';
 import type { BubbleProps } from 'vue-element-plus-x/types/Bubble';
 import type { BubbleListInstance } from 'vue-element-plus-x/types/BubbleList';
@@ -107,6 +108,44 @@ watch(
   { immediate: true },
 );
 
+// 解析历史消息中的思考内容
+function parseHistoryMessageContent(answer: string) {
+  const thinkStart = answer.includes('<think>');
+  const thinkEnd = answer.includes('</think>');
+  
+  let reasoning_content = '';
+  let content = answer;
+  let thinkingStatus: ThinkingStatus = 'end';
+  let thinlCollapse = false;
+
+  if (thinkStart && thinkEnd) {
+    // 包含完整的思考标签，需要分离思考内容和回答内容
+    const thinkMatch = answer.match(/<think>(.*?)<\/think>/s);
+    if (thinkMatch) {
+      reasoning_content = thinkMatch[1].trim();
+      content = answer.replace(/<think>.*?<\/think>/s, '').trim();
+      thinkingStatus = 'end';
+      thinlCollapse = reasoning_content.length > 0; // 如果有思考内容，默认展开
+    }
+  } else if (thinkStart) {
+    // 只有开始标签，可能是不完整的思考内容
+    const thinkMatch = answer.match(/<think>(.*)/s);
+    if (thinkMatch) {
+      reasoning_content = thinkMatch[1].trim();
+      content = answer.replace(/<think>.*/s, '').trim();
+      thinkingStatus = 'end';
+      thinlCollapse = reasoning_content.length > 0;
+    }
+  }
+
+  return {
+    reasoning_content,
+    content,
+    thinkingStatus,
+    thinlCollapse
+  };
+}
+
 // 加载会话历史记录
 async function loadConversationHistory(conversationId: string) {
   // 防止重复请求
@@ -145,6 +184,9 @@ async function loadConversationHistory(conversationId: string) {
 
         // 添加AI回复消息
         if (item.answer) {
+          // 解析AI回复中的思考内容
+          const parsedContent = parseHistoryMessageContent(item.answer);
+          
           messages.push({
             key: `${item.id}_assistant`,
             avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
@@ -153,10 +195,10 @@ async function loadConversationHistory(conversationId: string) {
             placement: 'start',
             isMarkdown: true,
             loading: false,
-            content: item.answer,
-            reasoning_content: '',
-            thinkingStatus: 'end' as const,
-            thinlCollapse: false,
+            content: parsedContent.content,
+            reasoning_content: parsedContent.reasoning_content,
+            thinkingStatus: parsedContent.thinkingStatus,
+            thinlCollapse: parsedContent.thinlCollapse,
             typing: false,
           });
         }
