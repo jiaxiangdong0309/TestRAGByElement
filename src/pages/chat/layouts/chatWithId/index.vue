@@ -112,7 +112,7 @@ watch(
 function parseHistoryMessageContent(answer: string) {
   const thinkStart = answer.includes('<think>');
   const thinkEnd = answer.includes('</think>');
-  
+
   let reasoning_content = '';
   let content = answer;
   let thinkingStatus: ThinkingStatus = 'end';
@@ -186,7 +186,7 @@ async function loadConversationHistory(conversationId: string) {
         if (item.answer) {
           // 解析AI回复中的思考内容
           const parsedContent = parseHistoryMessageContent(item.answer);
-          
+
           messages.push({
             key: `${item.id}_assistant`,
             avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',

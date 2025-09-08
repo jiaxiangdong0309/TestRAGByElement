@@ -71,7 +71,7 @@ function handleMenuCommand(command: string, item: DifyConversationItem) {
       })
         .then(() => {
           // 删除会话
-          difyStore.deleteSessions([item.id!]);
+          difyStore.deleteSessions(item.id!);
           nextTick(() => {
             if (item.id === active.value) {
               // 如果删除当前会话 返回到默认页

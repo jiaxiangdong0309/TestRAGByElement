@@ -172,9 +172,11 @@ export const useDifyStore = defineStore('dify', () => {
   };
 
   // 删除会话（供组件调用）
-  const deleteSessions = async (ids: string[]) => {
+  const deleteSessions = async (ids: string) => {
     try {
-      await delete_conversation(ids[0], { user: String(userStore.userInfo?.userId || userStore.userInfo?.username || '') });
+      // 使用用户ID作为user标识，如果没有则使用用户名
+      const user = userStore.userInfo?.userId?.toString() || userStore.userInfo?.username || 'anonymous';
+      await delete_conversation(ids, { user });
       // 删除会话后刷新列表
       await requestSessionList(false, true);
     }
@@ -207,7 +209,7 @@ export const useDifyStore = defineStore('dify', () => {
 
     return sessions.map((session) => {
       // created_at 是 Unix 时间戳（秒），需要转换为毫秒
-      const createDate = new Date(session.created_at * 1000);
+      const createDate = new Date(Number(session.created_at) * 1000);
       const diffDays = Math.floor(
         (currentDate.getTime() - createDate.getTime()) / (1000 * 60 * 60 * 24),
       );
