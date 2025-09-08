@@ -14,6 +14,7 @@ import { useFilesStore } from '@/stores/modules/files';
 import { useUserStore } from '@/stores/modules/user';
 import { useDifyStore } from '@/stores/modules/dify';
 import { USER_AVATAR, AI_AVATAR } from '@/config';
+import { useElectron, useElectronMenu } from '@/hooks/useElectron';
 
 type MessageItem = BubbleProps & {
   key: string;
@@ -27,6 +28,29 @@ type MessageItem = BubbleProps & {
 const filesStore = useFilesStore();
 const userStore = useUserStore();
 const difyStore = useDifyStore();
+
+// Electron 相关功能
+const { isElectron, platform, showAboutDialog, getAppVersion } = useElectron();
+const { setupMenuHandlers } = useElectronMenu();
+
+// 应用版本信息
+const appVersion = ref('1.0.0');
+
+// 初始化Electron功能
+onMounted(async () => {
+  if (isElectron) {
+    // 获取应用版本
+    appVersion.value = await getAppVersion();
+
+    // 设置菜单事件处理
+    setupMenuHandlers({
+      onNewSession: () => {
+        // 新建会话的逻辑
+        ElMessage.info('新建会话功能');
+      }
+    });
+  }
+});
 
 // 用户头像
 const avatar = computed(() => {
@@ -477,6 +501,24 @@ watch(
 
 <template>
   <div class="chat-with-id-container">
+    <!-- Electron 信息栏 -->
+    <div v-if="isElectron" class="electron-info-bar">
+      <div class="electron-info-content">
+        <div class="electron-info-left">
+          <el-icon><Monitor /></el-icon>
+          <span>桌面应用模式</span>
+          <el-tag size="small" type="info">{{ platform }}</el-tag>
+          <el-tag size="small" type="success">v{{ appVersion }}</el-tag>
+        </div>
+        <div class="electron-info-right">
+          <el-button size="small" type="primary" @click="showAboutDialog">
+            <el-icon><InfoFilled /></el-icon>
+            关于
+          </el-button>
+        </div>
+      </div>
+    </div>
+
     <div class="chat-warp">
       <BubbleList ref="bubbleListRef" :list="bubbleItems" max-height="calc(100vh - 240px)">
         <template #loading>
@@ -554,6 +596,54 @@ watch(
   width: 100%;
   max-width: 800px;
   height: 100%;
+
+  // Electron 信息栏样式
+  .electron-info-bar {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .electron-info-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 800px;
+      margin: 0 auto;
+
+      .electron-info-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+
+        .el-icon {
+          font-size: 16px;
+        }
+
+        .el-tag {
+          margin-left: 4px;
+        }
+      }
+
+      .electron-info-right {
+        .el-button {
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: white;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+          }
+        }
+      }
+    }
+  }
   .chat-warp {
     display: flex;
     flex-direction: column;
