@@ -1,6 +1,6 @@
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 import { useNProgress } from '@vueuse/integrations/useNProgress';
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router';
 import { ROUTER_WHITE_LIST } from '@/config';
 import { errorRouter, layoutRouter, staticRouter } from '@/routers/modules/staticRouter';
 import { useUserStore } from '@/stores';
@@ -13,8 +13,11 @@ const { start, done } = useNProgress(0, {
   speed: 500,
 });
 
+// 检测是否在 Electron 环境中
+const isElectron = window.navigator.userAgent.includes('Electron');
+
 const router = createRouter({
-  history: createWebHistory(),
+  history: isElectron ? createWebHashHistory() : createWebHistory(),
   routes: [...layoutRouter, ...staticRouter, ...errorRouter],
   strict: false,
   scrollBehavior: () => ({ left: 0, top: 0 }),

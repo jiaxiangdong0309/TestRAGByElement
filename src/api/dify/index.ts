@@ -17,6 +17,7 @@ import type {
 import hookFetch from 'hook-fetch';
 import { sseTextDecoderPlugin } from 'hook-fetch/plugins';
 import { useUserStore } from '@/stores';
+import { API_URL } from '@/config/localConfig';
 
 // 创建动态设置 Authorization header 的插件
 function difyAuthPlugin() {
@@ -33,9 +34,28 @@ function difyAuthPlugin() {
   };
 }
 
+// 根据环境选择baseURL
+const getBaseURL = () => {
+  // 检测是否在Electron环境中
+  const isElectron = window.navigator.userAgent.includes('Electron');
+  
+  // Electron环境直接使用API_URL
+  if (isElectron) {
+    return API_URL;
+  }
+  
+  // 开发环境使用代理避免CORS问题
+  if (import.meta.env.DEV) {
+    return '/api'; // 使用vite代理
+  }
+  
+  // 生产环境使用API_URL
+  return API_URL;
+};
+
 // 创建专门用于 Dify API 的请求实例
 const difyRequest = hookFetch.create({
-  baseURL: '/api', // 使用代理
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -84,8 +104,27 @@ export function get_conversation_messages(params: ConversationMessagesQueryParam
 // 删除会话
 export async function delete_conversation(conversation_id: string, data: DeleteConversationQueryParams): Promise<DeleteConversationResponse> {
   const userStore = useUserStore();
+  
+  // 根据环境选择baseURL
+  const getBaseURL = () => {
+    // 检测是否在Electron环境中
+    const isElectron = window.navigator.userAgent.includes('Electron');
+    
+    // Electron环境直接使用API_URL
+    if (isElectron) {
+      return API_URL;
+    }
+    
+    // 开发环境使用代理避免CORS问题
+    if (import.meta.env.DEV) {
+      return '/api'; // 使用vite代理
+    }
+    
+    // 生产环境使用API_URL
+    return API_URL;
+  };
 
-  const response = await fetch(`/api/conversations/${conversation_id}`, {
+  const response = await fetch(`${getBaseURL()}/conversations/${conversation_id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

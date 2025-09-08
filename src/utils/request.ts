@@ -15,11 +15,21 @@ interface BaseResponse {
 
 // 根据环境选择baseURL
 const getBaseURL = () => {
-  // 开发环境使用代理避免CORS问题，生产环境使用直接URL
+  // 检测是否在Electron环境中
+  const isElectron = window.navigator.userAgent.includes('Electron');
+  
+  // Electron环境直接使用API_URL
+  if (isElectron) {
+    return API_URL;
+  }
+  
+  // 开发环境使用代理避免CORS问题
   if (import.meta.env.DEV) {
     return '/api'; // 使用vite代理
   }
-  return API_URL; // 生产环境直接使用API_URL
+  
+  // 生产环境使用API_URL
+  return API_URL;
 };
 
 export const request = hookFetch.create<BaseResponse, 'data' | 'rows'>({
