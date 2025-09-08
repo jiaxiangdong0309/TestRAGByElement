@@ -15,3 +15,7 @@ export const SIDE_BAR_WIDTH: number = 280;
 export const ROUTER_WHITE_LIST: string[] = ['/chat', '/chat/not_login', '/403', '/404'];
 
 export const APP_NAME: string = '小石头';
+
+export const AI_AVATAR: string = 'https://hewa.obs.cn-north-1.myhuaweicloud.com:443/hewa/hehe/avatar/06.png?AccessKeyId=WTKXLS3A48YZXAOUUAPA&Expires=1757358693&Signature=ckhwfgUWY%2FfPnDh7TKRnQ0QV9Ag%3D';
+
+export const USER_AVATAR: string = 'https://hewa.obs.cn-north-1.myhuaweicloud.com:443/hewa/hehe/avatar/01.png?AccessKeyId=WTKXLS3A48YZXAOUUAPA&Expires=1757358693&Signature=iAWV4EYToPeA1R1mhQdf%2FQKGIKE%3D';

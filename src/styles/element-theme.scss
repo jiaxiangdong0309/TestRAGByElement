@@ -1,0 +1,161 @@
+// Element Plus Apple 风格主题配置
+// 基于 Apple Human Interface Guidelines 的颜色系统
+
+:root {
+  /* ========== 主色调 (Primary Colors) ========== */
+  --el-color-primary: #007AFF !important;           // Apple 蓝色
+  --el-color-primary-light-3: #4DA6FF !important;
+  --el-color-primary-light-5: #80BFFF !important;
+  --el-color-primary-light-7: #B3D9FF !important;
+  --el-color-primary-light-8: #CCE6FF !important;
+  --el-color-primary-light-9: #E6F2FF !important;
+  --el-color-primary-dark-2: #0056CC !important;
+
+  /* ========== 成功色 (Success Colors) ========== */
+  --el-color-success: #34C759 !important;           // Apple 绿色
+  --el-color-success-light-3: #5DD179 !important;
+  --el-color-success-light-5: #86DB99 !important;
+  --el-color-success-light-7: #AFE5B9 !important;
+  --el-color-success-light-8: #C7ECD1 !important;
+  --el-color-success-light-9: #E3F6E8 !important;
+  --el-color-success-dark-2: #2A9F47 !important;
+
+  /* ========== 警告色 (Warning Colors) ========== */
+  --el-color-warning: #FF9500 !important;           // Apple 橙色
+  --el-color-warning-light-3: #FFB033 !important;
+  --el-color-warning-light-5: #FFC666 !important;
+  --el-color-warning-light-7: #FFDC99 !important;
+  --el-color-warning-light-8: #FFEACC !important;
+  --el-color-warning-light-9: #FFF5E6 !important;
+  --el-color-warning-dark-2: #CC7700 !important;
+
+  /* ========== 危险色 (Danger Colors) ========== */
+  --el-color-danger: #FF3B30 !important;            // Apple 红色
+  --el-color-danger-light-3: #FF6259 !important;
+  --el-color-danger-light-5: #FF8983 !important;
+  --el-color-danger-light-7: #FFB0AC !important;
+  --el-color-danger-light-8: #FFC7C4 !important;
+  --el-color-danger-light-9: #FFE3E1 !important;
+  --el-color-danger-dark-2: #CC2F26 !important;
+
+  /* ========== 错误色 (Error Colors) ========== */
+  --el-color-error: #FF3B30 !important;             // 与危险色相同
+  --el-color-error-light-3: #FF6259 !important;
+  --el-color-error-light-5: #FF8983 !important;
+  --el-color-error-light-7: #FFB0AC !important;
+  --el-color-error-light-8: #FFC7C4 !important;
+  --el-color-error-light-9: #FFE3E1 !important;
+  --el-color-error-dark-2: #CC2F26 !important;
+
+  /* ========== 信息色 (Info Colors) ========== */
+  --el-color-info: #8E8E93 !important;              // Apple 灰色
+  --el-color-info-light-3: #A5A5AA !important;
+  --el-color-info-light-5: #BCBCC1 !important;
+  --el-color-info-light-7: #D3D3D8 !important;
+  --el-color-info-light-8: #E1E1E6 !important;
+  --el-color-info-light-9: #F0F0F5 !important;
+  --el-color-info-dark-2: #717176 !important;
+
+  /* ========== 文本颜色 (Text Colors) ========== */
+  --el-text-color-primary: #1D1D1F !important;      // Apple 深色文本
+  --el-text-color-regular: #3A3A3C !important;      // Apple 常规文本
+  --el-text-color-secondary: #8E8E93 !important;    // Apple 次要文本
+  --el-text-color-placeholder: #C7C7CC !important;  // Apple 占位符文本
+  --el-text-color-disabled: #D1D1D6 !important;     // Apple 禁用文本
+
+  /* ========== 边框颜色 (Border Colors) ========== */
+  --el-border-color: #D1D1D6 !important;            // Apple 边框色
+  --el-border-color-light: #E5E5EA !important;      // Apple 浅边框色
+  --el-border-color-lighter: #F2F2F7 !important;    // Apple 更浅边框色
+  --el-border-color-extra-light: #F9F9F9 !important; // Apple 极浅边框色
+  --el-border-color-dark: #C7C7CC !important;       // Apple 深边框色
+  --el-border-color-darker: #AEAEB2 !important;     // Apple 更深边框色
+
+  /* ========== 填充颜色 (Fill Colors) ========== */
+  --el-fill-color: #F2F2F7 !important;              // Apple 填充色
+  --el-fill-color-light: #F9F9F9 !important;        // Apple 浅填充色
+  --el-fill-color-lighter: #FFFFFF !important;      // Apple 更浅填充色
+  --el-fill-color-extra-light: #FAFAFA !important;  // Apple 极浅填充色
+  --el-fill-color-dark: #E5E5EA !important;         // Apple 深填充色
+  --el-fill-color-darker: #D1D1D6 !important;       // Apple 更深填充色
+  --el-fill-color-blank: #FFFFFF !important;        // Apple 空白填充色
+
+  /* ========== 背景颜色 (Background Colors) ========== */
+  --el-bg-color: #FFFFFF !important;                // Apple 背景色
+  --el-bg-color-page: #F2F2F7 !important;           // Apple 页面背景色
+  --el-bg-color-overlay: #FFFFFF !important;        // Apple 覆盖层背景色
+
+  /* ========== 阴影 (Shadow) ========== */
+  --el-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;           // Apple 轻微阴影
+  --el-box-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.05) !important;    // Apple 浅阴影
+  --el-box-shadow-lighter: 0 1px 2px rgba(0, 0, 0, 0.03) !important;  // Apple 更浅阴影
+  --el-box-shadow-dark: 0 2px 6px rgba(0, 0, 0, 0.15) !important;     // Apple 深阴影
+
+  /* ========== 圆角 (Border Radius) ========== */
+  --el-border-radius-base: 8px !important;          // Apple 基础圆角
+  --el-border-radius-small: 6px !important;         // Apple 小圆角
+  --el-border-radius-round: 20px !important;        // Apple 圆形圆角
+  --el-border-radius-circle: 50% !important;        // Apple 完全圆形
+
+  /* ========== 字体 (Typography) ========== */
+  --el-font-size-extra-large: 20px !important;      // Apple 超大字体
+  --el-font-size-large: 18px !important;            // Apple 大字体
+  --el-font-size-medium: 16px !important;           // Apple 中等字体
+  --el-font-size-base: 14px !important;             // Apple 基础字体
+  --el-font-size-small: 12px !important;            // Apple 小字体
+  --el-font-size-extra-small: 10px !important;      // Apple 超小字体
+
+  /* ========== 间距 (Spacing) ========== */
+  --el-component-size-large: 40px !important;       // Apple 大组件尺寸
+  --el-component-size: 32px !important;             // Apple 标准组件尺寸
+  --el-component-size-small: 24px !important;       // Apple 小组件尺寸
+
+  /* ========== 动画 (Animation) ========== */
+  --el-transition-duration: 0.3s !important;        // Apple 过渡动画时长
+  --el-transition-duration-fast: 0.2s !important;   // Apple 快速过渡时长
+  --el-transition-function-ease-in-out-bezier: cubic-bezier(0.4, 0, 0.2, 1) !important; // Apple 缓动函数
+  --el-transition-all: all var(--el-transition-duration) var(--el-transition-function-ease-in-out-bezier) !important;
+
+  /* ========== 特殊组件样式 ========== */
+  --el-messagebox-border-radius: 12px !important;   // Apple 对话框圆角
+  --el-dialog-border-radius: 12px !important;       // Apple 对话框圆角
+  --el-popover-border-radius: 8px !important;       // Apple 弹出框圆角
+  --el-tooltip-border-radius: 6px !important;       // Apple 提示框圆角
+  --el-notification-border-radius: 8px !important;  // Apple 通知圆角
+  --el-message-border-radius: 6px !important;       // Apple 消息圆角
+
+  /* ========== 按钮特殊样式 ========== */
+  --el-button-border-radius: 8px !important;        // Apple 按钮圆角
+  --el-button-hover-text-color: var(--el-color-primary) !important;
+  --el-button-active-text-color: var(--el-color-primary-dark-2) !important;
+
+  /* ========== 输入框特殊样式 ========== */
+  --el-input-border-radius: 8px !important;         // Apple 输入框圆角
+  --el-input-focus-border-color: var(--el-color-primary) !important;
+  --el-input-hover-border-color: var(--el-color-primary-light-7) !important;
+
+  /* ========== 卡片特殊样式 ========== */
+  --el-card-border-radius: 12px !important;         // Apple 卡片圆角
+  --el-card-border-color: var(--el-border-color-lighter) !important;
+  --el-card-box-shadow: var(--el-box-shadow-light) !important;
+
+  /* ========== 表格特殊样式 ========== */
+  --el-table-border-radius: 8px !important;         // Apple 表格圆角
+  --el-table-header-bg-color: var(--el-fill-color-lighter) !important;
+  --el-table-row-hover-bg-color: var(--el-fill-color-light) !important;
+
+  /* ========== 菜单特殊样式 ========== */
+  --el-menu-border-radius: 8px !important;          // Apple 菜单圆角
+  --el-menu-item-hover-bg-color: var(--el-fill-color-light) !important;
+  --el-menu-item-active-bg-color: var(--el-color-primary-light-9) !important;
+
+  /* ========== 标签页特殊样式 ========== */
+  --el-tabs-border-radius: 8px !important;          // Apple 标签页圆角
+  --el-tabs-item-hover-color: var(--el-color-primary) !important;
+  --el-tabs-item-active-color: var(--el-color-primary) !important;
+
+  /* ========== 分页特殊样式 ========== */
+  --el-pagination-border-radius: 6px !important;    // Apple 分页圆角
+  --el-pagination-button-bg-color: var(--el-fill-color-lighter) !important;
+  --el-pagination-button-hover-bg-color: var(--el-color-primary-light-9) !important;
+}

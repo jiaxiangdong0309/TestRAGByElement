@@ -7,6 +7,7 @@ import App from './App.vue';
 import router from './routers';
 import store from './stores';
 import './styles/index.scss';
+import './styles/element-theme.scss';  // 引入 Apple 风格主题配置
 import 'virtual:uno.css';
 import 'element-plus/dist/index.css';
 // SVG插件配置

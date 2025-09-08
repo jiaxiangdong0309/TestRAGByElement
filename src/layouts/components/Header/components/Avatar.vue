@@ -4,11 +4,12 @@ import Popover from '@/components/Popover/index.vue';
 import SvgIcon from '@/components/SvgIcon/index.vue';
 import { useUserStore } from '@/stores';
 import { useDifyStore } from '@/stores/modules/dify';
+import { USER_AVATAR } from '@/config';
 
 const userStore = useUserStore();
 const difyStore = useDifyStore();
 const src = computed(
-  () => userStore.userInfo?.avatar ?? 'https://avatars.githubusercontent.com/u/76239030',
+  () => userStore.userInfo?.avatar ?? USER_AVATAR,
 );
 
 /* 弹出面板 开始 */

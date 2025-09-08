@@ -5,12 +5,13 @@ import type { LoginDTO } from '@/api/auth/types';
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores';
-import { useLoginFormStore } from '@/stores/modules/loginForm';
+// import { useLoginFormStore } from '@/stores/modules/loginForm';
 import { useDifyStore } from '@/stores/modules/dify';
 import { API_KEY } from '@/config/localConfig';
+import { USER_AVATAR } from '@/config';
 const userStore = useUserStore();
 const difyStore = useDifyStore();
-const loginFormStore = useLoginFormStore();
+// const loginFormStore = useLoginFormStore();
 
 const formRef = ref<FormInstance>();
 
@@ -33,7 +34,7 @@ async function handleSubmit() {
     // res.data.token && userStore.setToken(res.data.token);
     // res.data.userInfo && userStore.setUserInfo(res.data.userInfo);
     userStore.setToken(API_KEY);
-    userStore.setUserInfo({ username: formModel.username,token: formModel.password });
+    userStore.setUserInfo({ username: formModel.username,token: formModel.password,avatar: USER_AVATAR });
     ElMessage.success('登录成功');
     userStore.closeLoginDialog();
     // 立刻获取会话列表
@@ -86,7 +87,7 @@ async function handleSubmit() {
     </el-form>
 
     <!-- 注册登录 -->
-    <div class="form-tip font-size-12px flex items-center">
+    <!-- <div class="form-tip font-size-12px flex items-center">
       <span>没有账号？</span>
       <span
         class="c-[var(--el-color-primar,#409eff)] cursor-pointer"
@@ -94,7 +95,7 @@ async function handleSubmit() {
       >
         立即注册
       </span>
-    </div>
+    </div> -->
   </div>
 </template>
 

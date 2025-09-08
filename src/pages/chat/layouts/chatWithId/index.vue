@@ -9,10 +9,11 @@ import type { ThinkingStatus } from 'vue-element-plus-x/types/Thinking';
 import { useHookFetch } from 'hook-fetch/vue';
 import { Sender } from 'vue-element-plus-x';
 import { send_message_stream } from '@/api/dify';
-import FilesSelect from '@/components/FilesSelect/index.vue';
+// import FilesSelect from '@/components/FilesSelect/index.vue';
 import { useFilesStore } from '@/stores/modules/files';
 import { useUserStore } from '@/stores/modules/user';
 import { useDifyStore } from '@/stores/modules/dify';
+import { USER_AVATAR, AI_AVATAR } from '@/config';
 
 type MessageItem = BubbleProps & {
   key: string;
@@ -30,7 +31,7 @@ const difyStore = useDifyStore();
 // 用户头像
 const avatar = computed(() => {
   const userInfo = userStore.userInfo;
-  return userInfo?.avatar || 'https://avatars.githubusercontent.com/u/76239030?v=4';
+  return userInfo?.avatar || USER_AVATAR;
 });
 
 const inputValue = ref('');
@@ -186,7 +187,7 @@ async function loadConversationHistory(conversationId: string) {
 
           messages.push({
             key: `${item.id}_assistant`,
-            avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
+            avatar: AI_AVATAR,
             avatarSize: '32px' as const,
             role: 'system',
             placement: 'start',
@@ -433,7 +434,7 @@ function addMessage(message: string, isUser: boolean) {
     key: `${timestamp}_${isUser ? 'user' : 'assistant'}`,
     avatar: isUser
       ? avatar.value
-      : 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
+      : AI_AVATAR,
     avatarSize: '32px',
     role: isUser ? 'user' : 'system',
     placement: isUser ? 'end' : 'start',
@@ -503,7 +504,7 @@ watch(
         ref="senderRef" v-model="inputValue" class="chat-defaul-sender" :auto-size="{
           maxRows: 6,
           minRows: 2,
-        }" variant="updown" clearable allow-speech :loading="isLoading" @submit="submitMessage" @cancel="cancelSSE"
+        }" variant="updown" clearable :loading="isLoading" @submit="submitMessage" @cancel="cancelSSE"
       >
         <template #header>
           <div class="sender-header p-12px pt-6px pb-0px">
@@ -536,7 +537,7 @@ watch(
         </template>
         <template #prefix>
           <div class="flex-1 flex items-center gap-8px flex-none w-fit overflow-hidden">
-            <FilesSelect />
+            <!-- <FilesSelect /> -->
           </div>
         </template>
       </Sender>
