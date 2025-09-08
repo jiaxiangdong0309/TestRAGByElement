@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import type { FilesCardProps } from 'vue-element-plus-x/types/FilesCard';
 import FilesSelect from '@/components/FilesSelect/index.vue';
-import StepSelect from '@/components/StepSelect/index.vue';
 import WelecomeText from '@/components/WelecomeText/index.vue';
 import { useUserStore } from '@/stores';
 import { useFilesStore } from '@/stores/modules/files';
@@ -16,7 +15,6 @@ const filesStore = useFilesStore();
 
 const senderValue = ref('');
 const senderRef = ref();
-const stepSelectRef = ref();
 
 async function handleSend() {
   // 判断是否登录
@@ -28,13 +26,10 @@ async function handleSend() {
 
   console.log('senderValue.value', senderValue.value);
 
-  // 获取当前选中的步骤信息
-  const currentStep = stepSelectRef.value?.getCurrentStep();
 
   // 构建保存的数据结构，与接口字段保持一致
   const chatData = {
     query: senderValue.value,
-    step: currentStep?.name || null,
   };
 
   // 将数据保存到localStorage
@@ -117,7 +112,6 @@ watch(
         <div class="flex-1 flex items-center gap-8px flex-none w-fit overflow-hidden">
           <FilesSelect />
           <!-- <ModelSelect /> -->
-          <StepSelect ref="stepSelectRef" />
         </div>
       </template>
     </Sender>

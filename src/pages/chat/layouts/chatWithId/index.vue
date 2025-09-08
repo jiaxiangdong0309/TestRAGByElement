@@ -10,7 +10,6 @@ import { useHookFetch } from 'hook-fetch/vue';
 import { Sender } from 'vue-element-plus-x';
 import { send_message_stream } from '@/api/dify';
 import FilesSelect from '@/components/FilesSelect/index.vue';
-import StepSelect from '@/components/StepSelect/index.vue';
 import { useFilesStore } from '@/stores/modules/files';
 import { useUserStore } from '@/stores/modules/user';
 import { useDifyStore } from '@/stores/modules/dify';
@@ -35,7 +34,6 @@ const avatar = computed(() => {
 });
 
 const inputValue = ref('');
-const stepSelectRef = ref();
 const senderRef = ref<InstanceType<typeof Sender> | null>(null);
 const bubbleItems = ref<MessageItem[]>([]);
 const bubbleListRef = ref<BubbleListInstance | null>(null);
@@ -96,9 +94,8 @@ watch(
 
         // 如果是newChat，调用difyStore的send_message方法
         if (newId === 'newChat') {
-          stepSelectRef.value?.setCurrentStep(chatData.step);
           setTimeout(async () => {
-            startSSE(chatData.query, chatData.step);
+            startSSE(chatData.query);
           }, 500);
         }
         localStorage.removeItem('chatContent');
@@ -340,19 +337,18 @@ function handleError(err: any) {
 
 function submitMessage() {
   const chatContent = inputValue.value;
-  const stepName = stepSelectRef.value?.getCurrentStep()?.name;
-  startSSE(chatContent, stepName);
+  startSSE(chatContent);
 }
 
 
-async function startSSE(chatContent: string, stepName: string) {
+async function startSSE(chatContent: string) {
   // 判断是否登录
   if (!userStore.token || !userStore.userInfo) {
     // 未登录，打开登录弹框
     userStore.openLoginDialog();
     return;
   }
-  console.log('jxd chatContent', chatContent, stepName);
+  console.log('jxd chatContent', chatContent);
 
   try {
     // 设置SSE流进行中标志
@@ -370,10 +366,8 @@ async function startSSE(chatContent: string, stepName: string) {
 
     const data = {
       inputs: {
-        step: stepName,
       },
       query: chatContent,
-      step: stepName,
       conversation_id: (difyStore.getCurrentConversationId() !== 'newChat' && difyStore.getCurrentConversationId() !== null) ? difyStore.getCurrentConversationId()! : undefined,
       user: String(userStore.userInfo?.username || ""),
       auto_generate_name: difyStore.getCurrentConversationId() === 'newChat',
@@ -395,6 +389,23 @@ async function startSSE(chatContent: string, stepName: string) {
     // 停止打字器状态
     if (bubbleItems.value && bubbleItems.value.length) {
       bubbleItems.value[bubbleItems.value.length - 1].typing = false;
+    }
+
+    // 如果是新创建的会话，刷新侧边栏列表
+    const currentId = difyStore.getCurrentConversationId();
+    if (currentId && currentId !== 'newChat') {
+      try {
+        // 刷新会话列表，让新创建的会话出现在侧边栏
+        await difyStore.requestSessionList(false, true);
+
+        // 设置当前选中的会话
+        const newSession = difyStore.sessionList.find(session => session.id === currentId);
+        if (newSession) {
+          difyStore.setCurrentSession(newSession);
+        }
+      } catch (error) {
+        console.error('刷新侧边栏会话列表失败:', error);
+      }
     }
   }
 }
@@ -526,7 +537,6 @@ watch(
         <template #prefix>
           <div class="flex-1 flex items-center gap-8px flex-none w-fit overflow-hidden">
             <FilesSelect />
-            <StepSelect ref="stepSelectRef" />
           </div>
         </template>
       </Sender>
