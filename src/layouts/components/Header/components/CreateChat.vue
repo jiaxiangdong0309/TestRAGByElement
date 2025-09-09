@@ -1,15 +1,16 @@
 <!-- 添加新会话按钮 -->
 <script setup lang="ts">
-import { useSessionStore } from '@/stores/modules/session';
+import { useDifyStore } from '@/stores/modules/dify';
 
-const sessionStore = useSessionStore();
+
+const difyStore = useDifyStore();
 
 /* 创建会话 开始 */
 function handleCreatChat() {
-  if (!sessionStore.currentSession)
+  if (!difyStore.currentSession)
     return;
   // 创建会话, 跳转到默认聊天
-  sessionStore.createSessionBtn();
+  difyStore.createSessionBtn();
 }
 /* 创建会话 结束 */
 </script>
@@ -18,7 +19,7 @@ function handleCreatChat() {
   <div
     class="create-chat-container flex-center flex-none p-6px pl-8px pr-8px c-#0057ff b-#0057ff b-rounded-12px border-1px hover:bg-#0057ff hover:c-#fff hover:b-#fff hover:cursor-pointer border-solid select-none"
     :class="{
-      'is-disabled': !sessionStore.currentSession,
+      'is-disabled': !difyStore.currentSession,
     }"
     @click="handleCreatChat"
   >

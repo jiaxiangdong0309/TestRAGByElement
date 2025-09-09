@@ -86,7 +86,7 @@ function createWindow() {
   })
 
   // 总是加载本地构建的文件
-  const indexPath = path.join(__dirname, '../dist/index.html')
+  const indexPath = path.join(__dirname, '../dist-electron/index.html')
   console.log('Loading from:', indexPath)
   
   // 检查文件是否存在

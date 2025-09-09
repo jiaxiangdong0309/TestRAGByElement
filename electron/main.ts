@@ -1,7 +1,7 @@
-const { app, BrowserWindow, shell, ipcMain, Menu } = require('electron')
-const path = require('path')
-const os = require('os')
-const { fileURLToPath } = require('url')
+import { app, BrowserWindow, shell, ipcMain, Menu } from 'electron'
+import path from 'node:path'
+import os from 'node:os'
+import { fileURLToPath } from 'node:url'
 
 // The built directory structure
 //

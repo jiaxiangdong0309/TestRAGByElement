@@ -100,7 +100,7 @@ watch(
                 @click="onScrollRight"
               >
                 <el-icon>
-                  <ArrowRightBold />
+                  <!-- <ArrowRightBold /> -->
                 </el-icon>
               </div>
             </template>

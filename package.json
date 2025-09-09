@@ -27,8 +27,8 @@
     "lint:stylelint": "stylelint --cache --fix \"**/*.{vue,less,postcss,css,scss}\" --cache --cache-location node_modules/.cache/stylelint/",
     "fix": "eslint . --fix",
     "electron:dev": "vite --mode electron",
-    "electron:build": "vue-tsc -b && vite build --mode electron && electron-builder",
-    "electron:serve": "wait-on tcp:5173 && electron .",
+    "electron:build": "vue-tsc -b && vite build --mode electron",
+    "electron:serve": "electron electron/main.cjs",
     "app:dist": "pnpm electron:build",
     "app:dev": "concurrently \"pnpm electron:dev\" \"pnpm electron:serve\""
   },

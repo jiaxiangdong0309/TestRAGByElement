@@ -31,6 +31,8 @@ pnpm fix           # ESLint 自动修复
 pnpm lint:stylelint # Stylelint 检查
 
 # Electron 开发
+./start-optimized.sh  # 优化的 Electron 启动脚本（推荐）
+./dev.sh              # 开发模式选择器
 pnpm run electron:dev  # Electron 开发模式
 pnpm run app:dev       # 一键启动 Electron 应用
 pnpm run app:dist      # 构建 Electron 应用
