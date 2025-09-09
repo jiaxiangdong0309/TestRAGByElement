@@ -1,6 +1,5 @@
 <!-- Header 头部 -->
 <script setup lang="ts">
-import { watchEffect } from 'vue';
 import { onKeyStroke } from '@vueuse/core';
 import { SIDE_BAR_WIDTH } from '@/config/index';
 import { useDesignStore, useUserStore } from '@/stores';
@@ -17,19 +16,6 @@ const sessionStore = useSessionStore();
 
 const currentSession = computed(() => sessionStore.currentSession);
 
-// 方案2：使用 watchEffect + 响应式状态
-const showAvatar = ref(false);
-const showLoginBtn = ref(false);
-
-watchEffect(() => {
-  if (userStore.token && userStore.token !== undefined) {
-    showAvatar.value = true;
-    showLoginBtn.value = false;
-  } else {
-    showAvatar.value = false;
-    showLoginBtn.value = true;
-  }
-});
 
 onMounted(() => {
 
@@ -85,8 +71,8 @@ onKeyStroke(event => event.ctrlKey && event.key.toLowerCase() === 'k', handleCtr
 
         <!-- 右边 -->
         <div class="right-box flex h-full items-center pr-20px flex-shrink-0 mr-auto flex-row">
-          <Avatar v-if="showAvatar" />
-          <LoginBtn v-if="showLoginBtn" />
+          <Avatar v-if="userStore.token" />
+          <LoginBtn v-if="!userStore.token" />
         </div>
       </div>
     </div>
