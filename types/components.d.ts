@@ -22,7 +22,6 @@ declare module 'vue' {
     ElImage: typeof import('element-plus/es')['ElImage']
     ElInput: typeof import('element-plus/es')['ElInput']
     ElMain: typeof import('element-plus/es')['ElMain']
-    ElTag: typeof import('element-plus/es')['ElTag']
     FilesSelect: typeof import('./../src/components/FilesSelect/index.vue')['default']
     IconSelect: typeof import('./../src/components/IconSelect/index.vue')['default']
     LoginDialog: typeof import('./../src/components/LoginDialog/index.vue')['default']

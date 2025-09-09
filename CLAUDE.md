@@ -8,7 +8,7 @@
 
 ## 项目概述
 
-这是一个基于 Vue 3.5 + TypeScript 的 AI 聊天应用模板，使用 Element Plus X 构建，设计用于配合 ruoyi-ai 后端。项目使用了现代化工具链，包括 Vite 6、Pinia 3 和支持 Server-Sent Events (SSE) 的 Hook-Fetch API 请求库。
+这是一个基于 Vue 3.5 + TypeScript 的 AI 聊天应用模板，使用 Element Plus X 构建，设计用于配合 ruoyi-ai 后端。项目支持 Web 和 Electron 双端部署，使用现代化工具链，包括 Vite 6、Pinia 3 和支持 Server-Sent Events (SSE) 的 Hook-Fetch API 请求库。
 
 ## 常用命令
 
@@ -30,6 +30,11 @@ pnpm lint          # ESLint 检查
 pnpm fix           # ESLint 自动修复
 pnpm lint:stylelint # Stylelint 检查
 
+# Electron 开发
+pnpm run electron:dev  # Electron 开发模式
+pnpm run app:dev       # 一键启动 Electron 应用
+pnpm run app:dist      # 构建 Electron 应用
+
 # 使用约定式提交
 pnpm cz            # 提交前会运行 lint
 ```
@@ -46,24 +51,33 @@ pnpm cz            # 提交前会运行 lint
 - **HTTP 客户端**: Hook-Fetch（替代 Axios）插件架构
 - **图标**: Element Plus 图标 + 自定义 SVG 图标
 - **TypeScript**: 完整 TS 支持自动生成类型
+- **桌面应用**: Electron 跨平台支持
 
 ### 项目结构
 
 ```
 src/
-├── api/              # API 模块（认证、聊天、模型、会话）
+├── api/              # API 模块（认证、聊天、模型、会话、Dify）
 ├── assets/icons/     # 按分类组织的 SVG 图标
 ├── components/      # 可复用 Vue 组件
-├── config/          # 应用配置（暗黑模式、设计令牌）
+├── config/          # 应用配置（暗黑模式、设计令牌、本地配置）
 ├── constants/       # 枚举和常量
 ├── hooks/           # 组合式 API 钩子
-├── layouts/         # 布局组件
+├── layouts/         # 布局组件（响应式布局）
 ├── routers/         # 路由配置（静态 + 动态）
 ├── stores/          # Pinia 存储（认证、聊天、设计、用户等）
 ├── styles/          # 全局样式和 SCSS 变量
 ├── utils/           # 工具函数（请求等）
 ├── views/           # 页面组件
 └── main.ts          # 应用入口点
+
+electron/            # Electron 桌面应用配置
+├── main.ts         # 主进程
+├── preload.ts      # 预加载脚本
+└── main.cjs        # CommonJS 主进程
+
+.build/              # 构建配置
+└── plugins/        # Vite 插件配置
 ```
 
 ### 核心特性
@@ -73,17 +87,20 @@ src/
    - SSE 流式响应
    - 自动错误处理（401/403 重定向）
    - 请求/响应拦截器
+   - Electron 环境适配
 
 2. **动态路由**: 静态和动态路由结合：
    - 基于权限的路由过滤
    - KeepAlive 页面缓存
    - 401/403 错误处理
+   - Electron 环境自动使用 Hash 路由
 
 3. **状态管理**: 带持久化的 Pinia 存储：
    - 用户认证和会话
    - 聊天对话和消息
    - UI 主题和设计偏好
    - 文件上传和模型设置
+   - Dify 工作流配置
 
 4. **组件自动导入**: 使用 unplugin-vue-components：
    - Element Plus 组件解析器
@@ -94,10 +111,17 @@ src/
    - Element Plus 图标（全局注册）
    - 自定义 SVG 图标（vite-plugin-svg-icons）
 
+6. **Electron 桌面应用**:
+   - 智能环境检测和路由适配
+   - 原生菜单栏和快捷键支持
+   - 开发者工具集成 (F12)
+   - 跨平台构建支持
+
 ### 请求处理
 
 项目使用 Hook-Fetch 替代 Axios，配置在 `src/utils/request.ts`：
-- 基础 URL 来自环境变量
+- 基础 URL 根据环境自动选择
+- Electron 环境直接使用 API_URL，开发环境使用代理
 - 自动 JWT 令牌注入
 - SSE 流式响应支持
 - 集中式错误处理和重定向
@@ -131,6 +155,8 @@ src/
 - 动态路由根据用户权限加载
 - UI 支持暗黑模式并持久化偏好设置
 - 聊天功能包含会话管理和消息流式传输
+- 支持 Dify 工作流集成
+- 一套代码同时支持 Web 和 Electron 桌面应用
 
 ## API 开发参考
 
@@ -144,3 +170,9 @@ src/
 - **处理方式**: 使用Hook-Fetch库的 `useHookFetch` 处理流式数据
 - **事件类型**: 支持11种SSE事件类型，包括message、message_end、error等
 - **具体实现**: 参考 `src/pages/chat/layouts/chatWithId/index.vue` 中的流式处理实现
+
+### Electron 开发
+- **环境检测**: 自动检测 Electron 环境，适配路由和 API 调用
+- **开发调试**: F12 打开开发者工具
+- **构建打包**: 支持 macOS、Windows、Linux 多平台构建
+- **启动脚本**: 提供 `start.sh` 一键启动脚本

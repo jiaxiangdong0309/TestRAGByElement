@@ -1,8 +1,7 @@
-import pkg from 'electron'
-const { app, BrowserWindow, shell, ipcMain, Menu } = pkg
-import path from 'node:path'
-import os from 'node:os'
-import { fileURLToPath } from 'node:url'
+const { app, BrowserWindow, shell, ipcMain, Menu } = require('electron')
+const path = require('path')
+const os = require('os')
+const { fileURLToPath } = require('url')
 
 // The built directory structure
 //
@@ -96,18 +95,27 @@ function createWindow() {
   console.log('Loading from:', indexPath)
   
   // 检查文件是否存在
-  const fs = await import('fs')
-  if (fs.existsSync(indexPath)) {
-    win.loadFile(indexPath)
-  } else {
-    console.error('Index file not found:', indexPath)
-    // 如果文件不存在，尝试加载开发服务器
+  import('fs').then(fs => {
+    if (fs.existsSync(indexPath)) {
+      win.loadFile(indexPath)
+    } else {
+      console.error('Index file not found:', indexPath)
+      // 如果文件不存在，尝试加载开发服务器
+      if (VITE_DEV_SERVER_URL) {
+        win.loadURL(VITE_DEV_SERVER_URL)
+      } else {
+        win.loadURL('data:text/html,<h1>Application not built properly</h1><p>Please run <code>pnpm build</code> first</p>')
+      }
+    }
+  }).catch(err => {
+    console.error('Failed to load fs module:', err)
+    // 如果无法加载 fs，直接尝试加载开发服务器
     if (VITE_DEV_SERVER_URL) {
       win.loadURL(VITE_DEV_SERVER_URL)
     } else {
       win.loadURL('data:text/html,<h1>Application not built properly</h1><p>Please run <code>pnpm build</code> first</p>')
     }
-  }
+  })
 
   // Make all links open with the browser, not with the application
   win.webContents.setWindowOpenHandler(({ url }) => {

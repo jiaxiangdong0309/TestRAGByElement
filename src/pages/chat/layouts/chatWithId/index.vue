@@ -14,7 +14,6 @@ import { useFilesStore } from '@/stores/modules/files';
 import { useUserStore } from '@/stores/modules/user';
 import { useDifyStore } from '@/stores/modules/dify';
 import { USER_AVATAR, AI_AVATAR } from '@/config';
-import { useElectron, useElectronMenu } from '@/hooks/useElectron';
 
 type MessageItem = BubbleProps & {
   key: string;
@@ -29,27 +28,13 @@ const filesStore = useFilesStore();
 const userStore = useUserStore();
 const difyStore = useDifyStore();
 
-// Electron 相关功能
-const { isElectron, platform, showAboutDialog, getAppVersion } = useElectron();
-const { setupMenuHandlers } = useElectronMenu();
+
 
 // 应用版本信息
 const appVersion = ref('1.0.0');
 
 // 初始化Electron功能
 onMounted(async () => {
-  if (isElectron) {
-    // 获取应用版本
-    appVersion.value = await getAppVersion();
-
-    // 设置菜单事件处理
-    setupMenuHandlers({
-      onNewSession: () => {
-        // 新建会话的逻辑
-        ElMessage.info('新建会话功能');
-      }
-    });
-  }
 });
 
 // 用户头像
@@ -501,23 +486,6 @@ watch(
 
 <template>
   <div class="chat-with-id-container">
-    <!-- Electron 信息栏 -->
-    <div v-if="isElectron" class="electron-info-bar">
-      <div class="electron-info-content">
-        <div class="electron-info-left">
-          <el-icon><Monitor /></el-icon>
-          <span>桌面应用模式</span>
-          <el-tag size="small" type="info">{{ platform }}</el-tag>
-          <el-tag size="small" type="success">v{{ appVersion }}</el-tag>
-        </div>
-        <div class="electron-info-right">
-          <el-button size="small" type="primary" @click="showAboutDialog">
-            <el-icon><InfoFilled /></el-icon>
-            关于
-          </el-button>
-        </div>
-      </div>
-    </div>
 
     <div class="chat-warp">
       <BubbleList ref="bubbleListRef" :list="bubbleItems" max-height="calc(100vh - 240px)">
