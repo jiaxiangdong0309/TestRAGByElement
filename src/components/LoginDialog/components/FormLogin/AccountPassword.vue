@@ -7,8 +7,9 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores';
 // import { useLoginFormStore } from '@/stores/modules/loginForm';
 import { useDifyStore } from '@/stores/modules/dify';
-import { API_KEY } from '@/config/localConfig';
 import { USER_AVATAR } from '@/config';
+import { API_KEY } from '@/config/localConfig';
+
 const userStore = useUserStore();
 const difyStore = useDifyStore();
 // const loginFormStore = useLoginFormStore();
@@ -29,12 +30,9 @@ const router = useRouter();
 async function handleSubmit() {
   try {
     await formRef.value?.validate();
-    // const res = await login(formModel);
-    // console.log(res, 'res');
-    // res.data.token && userStore.setToken(res.data.token);
-    // res.data.userInfo && userStore.setUserInfo(res.data.userInfo);
-    userStore.setToken(API_KEY);
-    userStore.setUserInfo({ username: formModel.username,token: formModel.password,avatar: USER_AVATAR });
+    const tempToken = userStore.secretKey || API_KEY;
+    userStore.setToken(tempToken);
+    userStore.setUserInfo({ username: formModel.username,token: tempToken,avatar: USER_AVATAR });
     ElMessage.success('登录成功');
     userStore.closeLoginDialog();
     // 立刻获取会话列表

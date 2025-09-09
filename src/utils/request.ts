@@ -17,17 +17,17 @@ interface BaseResponse {
 const getBaseURL = () => {
   // 检测是否在Electron环境中
   const isElectron = window.navigator.userAgent.includes('Electron');
-  
+
   // Electron环境直接使用API_URL
   if (isElectron) {
     return API_URL;
   }
-  
+
   // 开发环境使用代理避免CORS问题
   if (import.meta.env.DEV) {
     return '/api'; // 使用vite代理
   }
-  
+
   // 生产环境使用API_URL
   return API_URL;
 };
@@ -41,12 +41,13 @@ export const request = hookFetch.create<BaseResponse, 'data' | 'rows'>({
 });
 
 function jwtPlugin(): HookFetchPlugin<BaseResponse> {
+
   return {
     name: 'jwt',
     beforeRequest: async (config) => {
       const userStore = useUserStore();
       config.headers = new Headers(config.headers);
-      config.headers.set('authorization', `Bearer ${userStore.token}`);
+      config.headers.set('authorization', `Bearer ${userStore.secretKey}`);
       return config;
     },
     afterResponse: async (response) => {

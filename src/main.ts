@@ -12,6 +12,8 @@ import 'virtual:uno.css';
 import 'element-plus/dist/index.css';
 // SVG插件配置
 import 'virtual:svg-icons-register';
+import { useUserStore } from './stores/modules/user';
+import { API_KEY } from './config/localConfig';
 
 const app = createApp(App);
 
@@ -41,5 +43,11 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component);
 }
 app.use(store);
+
+// 初始化秘钥设置
+const userStore = useUserStore();
+if (!userStore.secretKey) {
+  userStore.setSecretKey(API_KEY);
+}
 
 app.mount('#app');

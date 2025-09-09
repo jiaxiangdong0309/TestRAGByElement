@@ -43,6 +43,15 @@ export const useUserStore = defineStore(
       isLoginDialogVisible.value = false;
     };
 
+    // 秘钥管理
+    const secretKey = ref<string>('');
+    const setSecretKey = (value: string) => {
+      secretKey.value = value;
+    };
+    const clearSecretKey = () => {
+      secretKey.value = '';
+    };
+
     return {
       token,
       setToken,
@@ -55,6 +64,10 @@ export const useUserStore = defineStore(
       isLoginDialogVisible,
       openLoginDialog,
       closeLoginDialog,
+      // 秘钥管理
+      secretKey,
+      setSecretKey,
+      clearSecretKey,
     };
   },
   {
