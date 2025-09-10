@@ -29,4 +29,4 @@ release/
 *.sln
 *.sw?
 *localConfig.ts
-dify
+difyelectron/
