@@ -126,6 +126,7 @@
     "nodeGypRebuild": false,
     "npmRebuild": false,
     "publish": null,
+    "forceCodeSigning": false,
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
@@ -142,14 +143,15 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
+          "target": "zip",
           "arch": [
             "x64"
           ]
         }
       ],
       "forceCodeSigning": false,
-      "verifyUpdateCodeSignature": false
+      "verifyUpdateCodeSignature": false,
+      "signAndEditExecutable": false
     },
     "linux": {
       "target": [
