@@ -22,7 +22,7 @@
   line-height: 1.5;
 
   // 默认字体在暗黑模式下的 bug 白色导致出现浅色 bug 暂定注释处理
-  // color: var(--fg-color-default); 
+  // color: var(--fg-color-default);
   word-wrap: break-word;
   background-color: var(--bg-color-default);
   text-size-adjust: 100%;
@@ -826,7 +826,7 @@
     --fg-color-danger: #f85149;
     --fg-color-done: #ab7df8;
     --bg-color-default: #0d1117;
-    --bg-color-muted: #151b23;
+    --bg-color-muted: #d8dde2;
     --bg-color-neutral-muted: #656c7633;
     --bg-color-attention-muted: #bb800926;
     --border-color-default: #3d444d;

@@ -13,8 +13,8 @@ import { send_message_stream } from '@/api/dify';
 import { useFilesStore } from '@/stores/modules/files';
 import { useUserStore } from '@/stores/modules/user';
 import { useDifyStore } from '@/stores/modules/dify';
-import { USER_AVATAR, AI_AVATAR } from '@/config';
-
+import userAvatar from '@/assets/images/user_avatar.png';
+import aiAvatar from '@/assets/images/ai_avatar.png';
 type MessageItem = BubbleProps & {
   key: string;
   role: 'ai' | 'user' | 'system';
@@ -30,8 +30,6 @@ const difyStore = useDifyStore();
 
 
 
-// 应用版本信息
-const appVersion = ref('1.0.0');
 
 // 初始化Electron功能
 onMounted(async () => {
@@ -39,8 +37,7 @@ onMounted(async () => {
 
 // 用户头像
 const avatar = computed(() => {
-  const userInfo = userStore.userInfo;
-  return userInfo?.avatar || USER_AVATAR;
+  return userAvatar;
 });
 
 const inputValue = ref('');
@@ -196,7 +193,7 @@ async function loadConversationHistory(conversationId: string) {
 
           messages.push({
             key: `${item.id}_assistant`,
-            avatar: AI_AVATAR,
+            avatar: aiAvatar,
             avatarSize: '32px' as const,
             role: 'system',
             placement: 'start',
@@ -442,8 +439,8 @@ function addMessage(message: string, isUser: boolean) {
   const obj: MessageItem = {
     key: `${timestamp}_${isUser ? 'user' : 'assistant'}`,
     avatar: isUser
-      ? avatar.value
-      : AI_AVATAR,
+      ? userAvatar
+      : aiAvatar,
     avatarSize: '32px',
     role: isUser ? 'user' : 'system',
     placement: isUser ? 'end' : 'start',
@@ -489,9 +486,9 @@ watch(
 
     <div class="chat-warp">
       <BubbleList ref="bubbleListRef" :list="bubbleItems" max-height="calc(100vh - 240px)">
-        <template #loading>
+        <!-- <template #loading>
           <div>loading...</div>
-        </template>
+        </template> -->
         <template #header="{ item }">
 
           <Thinking
