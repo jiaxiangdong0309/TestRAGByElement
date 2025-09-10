@@ -64,7 +64,12 @@ const popoverList = ref([
     title: '退出登录',
     icon: 'logout-box-r-line',
   },
-]);
+] as Array<{
+  key: string;
+  title: string;
+  icon: string;
+  divider?: boolean;
+}>);
 
 // 点击
 function handleClick(item: any) {
@@ -196,9 +201,9 @@ function handleClick(item: any) {
   box-shadow: 0 4px 16px rgb(0 0 0 / 8%);
 }
 
-.secret-key-dialog {
-  /* 秘钥设置对话框样式 */
-}
+/* .secret-key-dialog {
+  秘钥设置对话框样式
+} */
 
 .dialog-footer {
   display: flex;

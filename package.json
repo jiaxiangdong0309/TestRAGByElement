@@ -30,7 +30,12 @@
     "electron:build": "vue-tsc -b && vite build --mode electron",
     "electron:serve": "electron electron/main.cjs",
     "app:dist": "pnpm electron:build",
-    "app:dev": "concurrently \"pnpm electron:dev\" \"pnpm electron:serve\""
+    "app:dev": "concurrently \"pnpm electron:dev\" \"pnpm electron:serve\"",
+    "build:mac": "./build-electron.sh mac",
+    "build:win": "./build-electron.sh win",
+    "build:linux": "./build-electron.sh linux",
+    "build:all": "./build-electron.sh all",
+    "package": "pnpm electron:build && npx electron-builder"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
@@ -110,20 +115,29 @@
       "output": "release"
     },
     "files": [
-      "dist/**/*",
-      "dist-electron/**/*"
+      "dist-electron/**/*",
+      "!dist-electron/**/*.map"
     ],
+    "asar": true,
+    "asarUnpack": [],
+    "compression": "maximum",
+    "removePackageScripts": true,
+    "removePackageKeywords": true,
+    "nodeGypRebuild": false,
+    "npmRebuild": false,
+    "publish": null,
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
         {
           "target": "dmg",
           "arch": [
-            "x64",
-            "arm64"
+            "x64"
           ]
         }
-      ]
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
     },
     "win": {
       "target": [
@@ -133,7 +147,9 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "forceCodeSigning": false,
+      "verifyUpdateCodeSignature": false
     },
     "linux": {
       "target": [
@@ -144,6 +160,13 @@
           ]
         }
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   }
 }

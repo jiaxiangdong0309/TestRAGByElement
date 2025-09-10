@@ -8,9 +8,9 @@ export default defineConfig((cnf) => {
   const { mode } = cnf;
   const env = loadEnv(mode, process.cwd());
   const { VITE_APP_ENV } = env;
-  
+
   const isElectron = mode === 'electron';
-  
+
   return {
     base: isElectron ? './' : (VITE_APP_ENV === 'production' ? '/' : '/'),
     plugins: plugins(cnf),

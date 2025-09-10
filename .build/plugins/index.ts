@@ -6,12 +6,16 @@ import AutoImport from 'unplugin-auto-import/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 import Components from 'unplugin-vue-components/vite';
 import envTyped from 'vite-plugin-env-typed';
+import electron from 'vite-plugin-electron';
+import renderer from 'vite-plugin-electron-renderer';
 import createSvgIcon from './svg-icon';
 
 const root = path.resolve(__dirname, '../../');
 
 function plugins({ mode, command }: ConfigEnv): PluginOption[] {
-  return [
+  const isElectron = mode === 'electron';
+
+  const basePlugins: PluginOption[] = [
     UnoCSS(),
     envTyped({
       mode,
@@ -42,6 +46,29 @@ function plugins({ mode, command }: ConfigEnv): PluginOption[] {
     }),
     createSvgIcon(command === 'build'),
   ];
+
+  // 如果是 Electron 模式，添加 Electron 相关插件
+  if (isElectron) {
+    basePlugins.push(
+      electron([
+        {
+          // 主进程入口文件
+          entry: 'electron/main.ts',
+          onstart(options) {
+            // 通知渲染进程重新加载页面
+            options.reload();
+          },
+        },
+        {
+          // 预加载脚本入口文件
+          entry: 'electron/preload.ts',
+        },
+      ]),
+      renderer()
+    );
+  }
+
+  return basePlugins;
 }
 
 export default plugins;
