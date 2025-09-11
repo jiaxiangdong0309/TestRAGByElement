@@ -23,7 +23,7 @@ const formModel = reactive<LoginDTO>({
 
 const rules = reactive<FormRules<LoginDTO>>({
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  // password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 });
 
 const router = useRouter();
@@ -63,7 +63,7 @@ async function handleSubmit() {
           </template>
         </el-input>
       </el-form-item>
-      <el-form-item prop="password">
+      <!-- <el-form-item prop="password">
         <el-input
           v-model="formModel.password"
           placeholder="请输入密码"
@@ -76,7 +76,7 @@ async function handleSubmit() {
             </el-icon>
           </template>
         </el-input>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item>
         <el-button type="primary" style="width: 100%" native-type="submit">
           登录

@@ -5,7 +5,7 @@ import plugins from './.build/plugins';
 // https://vite.dev/config/
 export default defineConfig((cnf) => {
   return {
-    base: './',
+    base: '/xiaoshitou/',
     plugins: plugins(cnf),
     resolve: {
       alias: {
@@ -47,11 +47,42 @@ export default defineConfig((cnf) => {
       outDir: 'dist',
       rollupOptions: {
         output: {
-          manualChunks: undefined,
+          // 优化代码分割
+          manualChunks: {
+            // 将Vue相关库分离
+            vue: ['vue', 'vue-router', 'pinia'],
+            // 将Element Plus分离
+            'element-plus': ['element-plus', '@element-plus/icons-vue'],
+            // 将工具库分离
+            utils: ['@vueuse/core', '@vueuse/integrations', 'radash'],
+            // 将其他第三方库分离
+            vendor: ['nprogress', 'qrcode', 'hook-fetch'],
+          },
+          // 设置chunk文件名格式
+          chunkFileNames: 'js/[name]-[hash].js',
+          entryFileNames: 'js/[name]-[hash].js',
+          assetFileNames: (assetInfo) => {
+            if (!assetInfo.name) {
+              return `assets/[name]-[hash].[ext]`;
+            }
+            const info = assetInfo.name.split('.');
+            const ext = info[info.length - 1];
+            if (/\.(css)$/.test(assetInfo.name)) {
+              return `css/[name]-[hash].${ext}`;
+            }
+            if (/\.(png|jpe?g|gif|svg)$/.test(assetInfo.name)) {
+              return `images/[name]-[hash].${ext}`;
+            }
+            return `assets/[name]-[hash].${ext}`;
+          },
         },
       },
       target: 'es2015',
       minify: 'terser',
+      // 启用CSS代码分割
+      cssCodeSplit: true,
+      // 设置chunk大小警告限制
+      chunkSizeWarningLimit: 1000,
     },
   };
 });

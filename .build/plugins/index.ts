@@ -6,7 +6,7 @@ import AutoImport from 'unplugin-auto-import/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 import Components from 'unplugin-vue-components/vite';
 import envTyped from 'vite-plugin-env-typed';
-import { viteSingleFile } from 'vite-plugin-singlefile';
+// import { viteSingleFile } from 'vite-plugin-singlefile'; // 移除单文件插件
 import createSvgIcon from './svg-icon';
 
 const root = path.resolve(__dirname, '../../');
@@ -44,10 +44,10 @@ function plugins({ mode, command }: ConfigEnv): PluginOption[] {
     createSvgIcon(command === 'build'),
   ];
 
-  // 如果是构建模式，添加单文件插件
-  if (command === 'build') {
-    basePlugins.push(viteSingleFile());
-  }
+  // 移除单文件插件，使用正常的分离文件构建
+  // if (command === 'build') {
+  //   basePlugins.push(viteSingleFile());
+  // }
 
   return basePlugins;
 }

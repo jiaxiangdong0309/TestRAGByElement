@@ -17,7 +17,7 @@ const { start, done } = useNProgress(0, {
 const isElectron = window.navigator.userAgent.includes('Electron');
 
 const router = createRouter({
-  history: isElectron ? createWebHashHistory() : createWebHistory(),
+  history: isElectron ? createWebHashHistory() : createWebHistory('/xiaoshitou/'),
   routes: [...layoutRouter, ...staticRouter, ...errorRouter],
   strict: false,
   scrollBehavior: () => ({ left: 0, top: 0 }),
