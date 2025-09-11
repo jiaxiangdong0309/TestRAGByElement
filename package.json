@@ -116,7 +116,8 @@
     },
     "files": [
       "dist-electron/**/*",
-      "!dist-electron/**/*.map"
+      "!dist-electron/**/*.map",
+      "!dist-electron/node_modules/**/*"
     ],
     "asar": true,
     "asarUnpack": [],
