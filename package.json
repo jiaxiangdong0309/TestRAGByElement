@@ -25,17 +25,7 @@
     "prepare": "husky",
     "lint": "eslint .",
     "lint:stylelint": "stylelint --cache --fix \"**/*.{vue,less,postcss,css,scss}\" --cache --cache-location node_modules/.cache/stylelint/",
-    "fix": "eslint . --fix",
-    "electron:dev": "vite --mode electron",
-    "electron:build": "vue-tsc -b && vite build --mode electron",
-    "electron:serve": "electron electron/main.cjs",
-    "app:dist": "pnpm electron:build",
-    "app:dev": "concurrently \"pnpm electron:dev\" \"pnpm electron:serve\"",
-    "build:mac": "./build-electron.sh mac",
-    "build:win": "./build-electron.sh win",
-    "build:linux": "./build-electron.sh linux",
-    "build:all": "./build-electron.sh all",
-    "package": "pnpm electron:build && npx electron-builder"
+    "fix": "eslint . --fix"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
@@ -71,8 +61,6 @@
     "concurrently": "^9.2.1",
     "cross-env": "^10.0.0",
     "cz-git": "^1.12.0",
-    "electron": "^38.0.0",
-    "electron-builder": "^26.0.12",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vue": "^10.4.0",
@@ -95,9 +83,8 @@
     "unplugin-auto-import": "^19.3.0",
     "unplugin-vue-components": "^28.8.0",
     "vite": "6.0.0",
-    "vite-plugin-electron": "^0.29.0",
-    "vite-plugin-electron-renderer": "^0.14.6",
     "vite-plugin-env-typed": "^0.0.2",
+    "vite-plugin-singlefile": "^2.3.0",
     "vite-plugin-svg-icons": "^2.0.1",
     "vue-tsc": "^3.0.1",
     "wait-on": "^8.0.4"
@@ -105,71 +92,6 @@
   "config": {
     "commitizen": {
       "path": "node_modules/cz-git"
-    }
-  },
-  "main": "dist-electron/main.js",
-  "build": {
-    "appId": "com.ruoyi-element-ai.app",
-    "productName": "ruoyi-element-ai",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist-electron/**/*",
-      "!dist-electron/**/*.map",
-      "!dist-electron/node_modules/**/*"
-    ],
-    "asar": true,
-    "asarUnpack": [],
-    "compression": "maximum",
-    "removePackageScripts": true,
-    "removePackageKeywords": true,
-    "nodeGypRebuild": false,
-    "npmRebuild": false,
-    "publish": null,
-    "forceCodeSigning": false,
-    "mac": {
-      "category": "public.app-category.productivity",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false
-    },
-    "win": {
-      "target": [
-        {
-          "target": "zip",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "forceCodeSigning": false,
-      "verifyUpdateCodeSignature": false,
-      "signAndEditExecutable": false
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "deleteAppDataOnUninstall": false,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
     }
   }
 }
