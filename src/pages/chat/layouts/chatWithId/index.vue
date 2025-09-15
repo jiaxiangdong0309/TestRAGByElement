@@ -1,18 +1,22 @@
 <!-- 每个回话对应的聊天内容 -->
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import type { AnyObject } from 'typescript-api-pro';
 import type { BubbleProps } from 'vue-element-plus-x/types/Bubble';
 import type { BubbleListInstance } from 'vue-element-plus-x/types/BubbleList';
 import type { FilesCardProps } from 'vue-element-plus-x/types/FilesCard';
 import type { ThinkingStatus } from 'vue-element-plus-x/types/Thinking';
 import { useHookFetch } from 'hook-fetch/vue';
-import { Sender } from 'vue-element-plus-x';
+import { Sender, BubbleList, Thinking, XMarkdown, Attachments } from 'vue-element-plus-x';
 import { send_message_stream } from '@/api/dify';
+import { Document, ArrowLeftBold, ArrowRightBold } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+import { useRouter } from 'vue-router';
 // import FilesSelect from '@/components/FilesSelect/index.vue';
 import { useFilesStore } from '@/stores/modules/files';
 import { useUserStore } from '@/stores/modules/user';
 import { useDifyStore } from '@/stores/modules/dify';
+import { usePreviewStore } from '@/stores/modules/preview';
 import userAvatar from '@/assets/images/user_avatar.png';
 import aiAvatar from '@/assets/images/ai_avatar.png';
 type MessageItem = BubbleProps & {
@@ -27,6 +31,8 @@ type MessageItem = BubbleProps & {
 const filesStore = useFilesStore();
 const userStore = useUserStore();
 const difyStore = useDifyStore();
+const previewStore = usePreviewStore();
+const router = useRouter();
 
 
 
@@ -464,6 +470,26 @@ function handleDeleteCard(_item: FilesCardProps, index: number) {
   filesStore.deleteFileByIndex(index);
 }
 
+// 处理生成网页按钮点击
+function handleGenerateWebpage(item: MessageItem) {
+  console.log('生成网页按钮被点击', item);
+
+  try {
+    // 将数据存储到store中
+    previewStore.setPreviewData(item);
+
+    // 跳转到预览页面
+    router.push({
+      name: 'preview'
+    });
+
+    ElMessage.success('正在跳转到预览页面...');
+  } catch (error) {
+    console.error('跳转预览页面失败:', error);
+    ElMessage.error('跳转失败，请重试');
+  }
+}
+
 watch(
   () => filesStore.filesList.length,
   (val) => {
@@ -499,10 +525,24 @@ watch(
 
         <template #content="{ item }">
           <!-- chat 内容走 markdown -->
-          <XMarkdown v-if="item.content && item.role === 'system'" :markdown="item.content" class="markdown-body" :themes="{ light: 'github-light', dark: 'github-dark' }" default-theme-mode="dark" />
+          <div v-if="item.content && item.role === 'system'" class="ai-content-wrapper">
+            <XMarkdown :markdown="item.content" class="markdown-body" :themes="{ light: 'github-light', dark: 'github-dark' }" default-theme-mode="dark" />
+          </div>
           <!-- user 内容 纯文本 -->
           <div v-if="item.content && item.role === 'user'" class="user-content">
             {{ item.content }}
+          </div>
+        </template>
+
+        <!-- AI回复完成后的生成网页按钮 - 在内容框外面 -->
+        <template #footer="{ item }">
+          <div v-if="item.content && item.role === 'system' && !item.loading && item.thinkingStatus === 'end'" class="ai-actions">
+            <el-button
+              :icon="Document"
+              @click="handleGenerateWebpage(item)"
+            >
+              生成网页
+            </el-button>
           </div>
         </template>
       </BubbleList>
@@ -645,6 +685,37 @@ watch(
     // xmarkdown 样式
     .elx-xmarkdown-container {
       padding: 8px 4px;
+    }
+  }
+
+  // AI内容包装器样式
+  .ai-content-wrapper {
+    width: 100%;
+  }
+
+  // AI操作按钮样式 - 在footer插槽中
+  .ai-actions {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-start; // 左对齐
+
+    .generate-webpage-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      padding: 6px 12px;
+      height: auto;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .el-icon {
+        margin-right: 4px;
+      }
     }
   }
   .chat-defaul-sender {

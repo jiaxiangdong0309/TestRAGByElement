@@ -57,6 +57,7 @@
     "@typescript-eslint/parser": "^8.41.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",
+    "code-inspector-plugin": "^1.2.8",
     "commitlint": "^19.8.1",
     "concurrently": "^9.2.1",
     "cross-env": "^10.0.0",

@@ -36,7 +36,21 @@ export const layoutRouter: RouteRecordRaw[] = [
 ];
 
 // staticRouter[静态路由] 预留
-export const staticRouter: RouteRecordRaw[] = [];
+export const staticRouter: RouteRecordRaw[] = [
+  {
+    path: '/preview',
+    name: 'preview',
+    component: () => import('@/pages/preview/index.vue'),
+    meta: {
+      title: '网页预览',
+      enName: 'Webpage Preview',
+      icon: 'View',
+      isHide: '1', // 在菜单中隐藏
+      isKeepAlive: '0',
+      isFull: '0',
+    },
+  },
+];
 
 // errorRouter (错误页面路由)
 export const errorRouter = [

@@ -11,4 +11,5 @@ export default store;
 export * from './modules/design';
 export * from './modules/dify';
 export * from './modules/files';
+export * from './modules/preview';
 export * from './modules/user';
