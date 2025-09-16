@@ -11,12 +11,12 @@ import { Sender, BubbleList, Thinking, XMarkdown, Attachments } from 'vue-elemen
 import { send_message_stream } from '@/api/dify';
 import { Document, ArrowLeftBold, ArrowRightBold } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { useRouter } from 'vue-router';
+// import { useRouter } from 'vue-router';
 // import FilesSelect from '@/components/FilesSelect/index.vue';
 import { useFilesStore } from '@/stores/modules/files';
 import { useUserStore } from '@/stores/modules/user';
 import { useDifyStore } from '@/stores/modules/dify';
-import { usePreviewStore } from '@/stores/modules/preview';
+// import { usePreviewStore } from '@/stores/modules/preview';
 import userAvatar from '@/assets/images/user_avatar.png';
 import aiAvatar from '@/assets/images/ai_avatar.png';
 type MessageItem = BubbleProps & {
@@ -31,8 +31,8 @@ type MessageItem = BubbleProps & {
 const filesStore = useFilesStore();
 const userStore = useUserStore();
 const difyStore = useDifyStore();
-const previewStore = usePreviewStore();
-const router = useRouter();
+// const previewStore = usePreviewStore();
+// const router = useRouter();
 
 
 
@@ -55,6 +55,7 @@ const bubbleListRef = ref<BubbleListInstance | null>(null);
 let isLoadingHistory = false;
 // SSE流进行中的标志
 let isSSEStreaming = false;
+
 
 const { stream, loading: isLoading, cancel } = useHookFetch({
   request: send_message_stream,
@@ -473,15 +474,19 @@ function handleDeleteCard(_item: FilesCardProps, index: number) {
 // 处理生成网页按钮点击
 function handleGenerateWebpage(item: MessageItem) {
   console.log('生成网页按钮被点击', item);
-
   try {
-    // 将数据存储到store中
-    previewStore.setPreviewData(item);
+    // 生成唯一ID作为key
+    const previewId = `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // 跳转到预览页面
-    router.push({
-      name: 'preview'
-    });
+    // 将数据存储到localStorage中（持久化存储）
+    const previewData = {
+      id: previewId,
+      content: item.content
+    };
+    localStorage.setItem(previewId, JSON.stringify(previewData));
+
+    // 跳转到预览页面并携带ID
+    window.open(`/xiaoshitou/preview?id=${previewId}`, '_blank');
 
     ElMessage.success('正在跳转到预览页面...');
   } catch (error) {

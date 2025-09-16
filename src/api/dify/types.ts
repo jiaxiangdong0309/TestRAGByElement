@@ -212,3 +212,18 @@ export interface StopMessageResponse {
   };
   message: string;
 }
+
+//预览
+export interface PreviewRequest {
+  inputs: Record<string, any>;
+  user: string;
+}
+
+//预览响应
+export interface PreviewResponse {
+  code: number;
+  data: {
+    id: string;
+  };
+  message: string;
+}
