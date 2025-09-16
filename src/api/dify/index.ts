@@ -190,3 +190,17 @@ export function send_message_stream_preview(data: PreviewRequest) {
     response_mode: 'streaming'
   });
 }
+
+// 发送对话消息（流式模式）
+// export function send_message_stream_preview(data: Omit<ChatMessagesRequest, 'response_mode'>) {
+//   console.log('jxd 开始请求流式对话接口', data);
+
+//   // 确保使用流式模式
+//   const requestData: ChatMessagesRequest = {
+//     ...data,
+//     response_mode: 'streaming' as const
+//   };
+
+//   // 使用 difyRequest 确保 Authorization header 正确
+//   return difyRequest.post('/chat-messages', requestData);
+// }

@@ -216,6 +216,9 @@ export interface StopMessageResponse {
 //预览
 export interface PreviewRequest {
   inputs: Record<string, any>;
+  sourceContent: string;
+  updateContext: string;
+  isUpdate: number;
   user: string;
 }
 

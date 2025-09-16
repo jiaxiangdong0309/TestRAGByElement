@@ -1,16 +1,14 @@
 <!-- 网页预览页面 -->
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { Loading } from '@element-plus/icons-vue';
 import { usePreviewStore } from '@/stores/modules/preview';
 import { send_message_stream_preview } from '@/api/dify';
-import type { PreviewRequest } from '@/api/dify/types';
-// import type { DifyResponse } from '@/stores/modules/preview';
 import { useHookFetch } from 'hook-fetch/vue';
-// import aiAvatar from '@/assets/images/ai_avatar.png';
-// import userAvatar from '@/assets/images/user_avatar.png';
+import { Sender } from 'vue-element-plus-x';
+import { Document, Loading } from '@element-plus/icons-vue';
+import type { PreviewRequest } from '@/api/dify/types';
 
 
 const previewStore = usePreviewStore();
@@ -18,6 +16,10 @@ const route = useRoute();
 
 // 使用computed获取预览数据
 const previewData = computed(() => previewStore.getPreviewData());
+
+// 输入框相关
+const inputValue = ref('');
+const inputLoading = ref(false);
 
 // 加载状态
 const isLoading = ref(false);
@@ -28,16 +30,39 @@ let currentPreviewId: string | null = null;
 // 流式响应相关
 const generatedContent = ref('');
 const isLoadingContent = ref(false);
+
+// 瀑布流弹窗相关
+const showMatrixOverlay = ref(false);
+const matrixText = ref('');
+const isFirstRequest = ref(true);
+const hasContent = ref(false);
+
+// 瀑布流自动滚动
+const matrixRainRef = ref<HTMLElement | null>(null);
+
+// 滚动到底部
+const scrollToBottom = () => {
+  if (matrixRainRef.value) {
+    matrixRainRef.value.scrollTop = matrixRainRef.value.scrollHeight;
+  }
+};
+
+// 监听matrixText变化，自动滚动
+watch(matrixText, () => {
+  nextTick(() => {
+    scrollToBottom();
+  });
+});
 const { stream } = useHookFetch({
   request: send_message_stream_preview,
-  onError: (err) => {
+  onError: (err: any) => {
     console.error('流式请求错误:', err);
     ElMessage.error('流式请求失败');
   },
 });
 
 // 调用预览接口的函数
-const callPreviewApi = async () => {
+const callPreviewApi = async (userInput?: string) => {
   if (!previewData.value) {
     ElMessage.warning('没有预览数据可以发送');
     return;
@@ -46,18 +71,51 @@ const callPreviewApi = async () => {
   try {
     console.log('🚀 [开始调用预览接口]', {
       previewData: previewData.value,
+      userInput,
       timestamp: new Date().toISOString()
     });
 
     isLoading.value = true;
-    ElMessage.info('正在调用预览接口...');
+
+    // 清空瀑布流文本并显示弹窗
+    matrixText.value = '';
+    showMatrixOverlay.value = true;
+
+    isLoadingContent.value = true;
+
+    // 判断是首次请求还是用户修改请求
+    let sourceContent: string;
+    let updateContext: string;
+    let isUpdate: number;
+
+    if (isFirstRequest.value) {
+      // 首次请求：源数据转HTML
+      sourceContent = previewData.value.content || '';
+      updateContext = '';
+      isUpdate = 0;
+      console.log('🔍 [首次请求]', {
+        previewDataContent: previewData.value.content,
+        sourceContent,
+        updateContext
+      });
+    } else {
+      // 用户修改请求：基于瀑布流内容进行修改
+      sourceContent = generatedContent.value;
+      updateContext = userInput || '';
+      isUpdate = 1;
+      console.log('🔍 [用户修改请求]', { userInput, updateContext });
+    }
 
     // 构建 API 请求数据
     const requestData: PreviewRequest = {
       inputs: {
-        sourceContent: previewData.value.content || '你好'
-        // sourceContent: '你好'
+        sourceContent,
+        updateContext,
+        isUpdate
       },
+      sourceContent,
+      updateContext,
+      isUpdate,
       user: 'preview_user'
     };
 
@@ -67,10 +125,6 @@ const callPreviewApi = async () => {
       timestamp: new Date().toISOString()
     });
 
-    // 清空之前的内容
-    generatedContent.value = '';
-    isLoadingContent.value = true;
-
     console.log('🔄 [开始流式请求]');
 
     // 开始流式请求
@@ -78,7 +132,7 @@ const callPreviewApi = async () => {
     for await (const chunk of stream(requestData)) {
       chunkCount++;
       console.log(`📦 [接收到第${chunkCount}个数据块]`,
-      chunk.result?.data?.text  || '');
+      (chunk.result as any)?.data?.text  || '');
 
       handleStreamChunk(chunk.result as any);
     }
@@ -89,17 +143,14 @@ const callPreviewApi = async () => {
     });
 
     ElMessage.success('预览接口调用成功');
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ [调用预览接口失败]', {
       error,
-      stack: error.stack,
+      stack: error?.stack,
       timestamp: new Date().toISOString()
     });
 
     ElMessage.error('调用预览接口失败');
-
-    // 重置加载状态
-    isLoadingContent.value = false;
   } finally {
     console.log('🏁 [请求结束]', {
       isLoading: isLoading.value,
@@ -110,9 +161,21 @@ const callPreviewApi = async () => {
     });
 
     isLoading.value = false;
-
-    // 停止加载状态
     isLoadingContent.value = false;
+
+    // 隐藏瀑布流弹窗
+    setTimeout(() => {
+      showMatrixOverlay.value = false;
+      matrixText.value = '';
+
+      // 标记已有内容
+      if (generatedContent.value) {
+        hasContent.value = true;
+      }
+    }, 1000); // 延迟1秒隐藏，让用户看到完整效果
+
+    // 不再是首次请求
+    isFirstRequest.value = false;
   }
 };
 
@@ -121,42 +184,24 @@ function handleStreamChunk(chunk: any) {
   try {
     const event = chunk.event;
 
-    if (event === 'text_chunk') {
-      // 处理文本块事件 - 预览API的实际事件类型
-      const content = chunk.data?.text || '';
-      if (content) {
-        generatedContent.value += content;
-        console.log('text_chunk内容:', generatedContent.value);
-      }
-    } else if (event === 'message' && chunk.answer) {
-      // 处理消息内容 - 与聊天页面保持一致（兼容性）
-      generatedContent.value += chunk.answer;
-      console.log('message追加内容:', chunk.answer);
-    } else if (event === 'message_end') {
-      // 消息结束处理
-      console.log('message_end - 最终内容:', generatedContent.value);
-      isLoadingContent.value = false;
-    } else if (event === 'node_finished') {
-      // 节点完成事件 - 也可能包含内容
-      const nodeContent = chunk.data?.text || '';
-      if (nodeContent) {
-        generatedContent.value += nodeContent;
-        console.log('node_finished内容:', nodeContent);
-      }
-    } else if (event === 'workflow_started') {
+    const chunkText = chunk.data?.text || chunk.answer || '';
+    if (chunkText) {
+      // 添加到瀑布流文本
+      matrixText.value += chunkText;
+    }
+
+    // 只在瀑布流完成时处理最终内容，中间过程不处理 generatedContent
+    if (event === 'workflow_started') {
       // 工作流开始
       console.log('🚀 [工作流开始]', chunk.data);
     } else if (event === 'workflow_finished') {
       // 工作流完成
       console.log('✅ [工作流完成]', chunk.data);
 
-      // 工作流完成时，确保最终内容正确显示
-      const finalContent = chunk.data?.text || '';
-      if (finalContent) {
-        generatedContent.value += finalContent;
-        isLoadingContent.value = false;
-        console.log('workflow_finished最终内容:', finalContent);
-      }
+      // 工作流完成时，将瀑布流内容赋值给 generatedContent
+      generatedContent.value = matrixText.value;
+      isLoadingContent.value = false;
+      console.log('workflow_finished最终内容:', generatedContent.value);
 
       // 更新store中的响应数据 - 修复数据路径
       if (chunk.data) {
@@ -202,11 +247,11 @@ function handleStreamChunk(chunk: any) {
       });
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ [处理流式数据块失败]', {
       error,
       chunk,
-      stack: error.stack
+      stack: error?.stack
     });
   }
 }
@@ -250,7 +295,38 @@ function cleanupCurrentPreviewData() {
   }
 }
 
-onMounted(() => {
+// 输入框提交处理
+const handleInputSubmit = async (value: string) => {
+  if (!value.trim()) {
+    ElMessage.warning('请输入内容');
+    return;
+  }
+
+  try {
+    inputLoading.value = true;
+
+    // 更新预览数据到store
+    previewStore.setPreviewData({
+      content: value.trim(),
+      role: 'user',
+      avatar: '',
+      key: `preview_${Date.now()}`,
+    });
+
+    // 调用预览接口，传递用户输入作为修改要求
+    await callPreviewApi(value.trim());
+
+    // 清空输入框
+    inputValue.value = '';
+  } catch (error) {
+    console.error('提交失败:', error);
+    ElMessage.error('提交失败');
+  } finally {
+    inputLoading.value = false;
+  }
+};
+
+onMounted(async () => {
   // 清理过期数据
   cleanupExpiredPreviewData();
 
@@ -268,12 +344,14 @@ onMounted(() => {
 
         // 将数据设置到store中
         previewStore.setPreviewData({
-          id: previewData.id,
           content: previewData.content,
           role: 'ai',
           avatar: '',
           key: previewId,
         });
+
+        // 自动调用预览接口
+        // await callPreviewApi();
       } else {
         console.warn('未找到对应的预览数据，可能已过期');
         ElMessage.warning('预览数据已过期，请重新生成');
@@ -282,12 +360,14 @@ onMounted(() => {
       console.error('解析预览数据失败:', error);
       ElMessage.error('数据解析失败');
     }
-  } else if (!previewData.value) {
-    console.warn('未找到预览数据，可能是直接访问了预览页面');
-    // 如果没有数据，可以跳转回聊天页面
-    // router.push('/');
-  } else {
+  } else if (previewData.value) {
     console.log('预览页面接收到的数据:', previewData.value);
+    // 如果已经有预览数据，也自动调用预览接口
+    // await callPreviewApi();
+  } else {
+    console.warn('未找到预览数据，可能是直接访问了预览页面');
+    // 显示提示，让用户输入内容
+    ElMessage.info('请输入需要生成网页的内容');
   }
 });
 
@@ -296,6 +376,10 @@ onUnmounted(() => {
   cleanupCurrentPreviewData();
 });
 
+const resetIsFirstRequest = () => {
+  isFirstRequest.value = true;
+  callPreviewApi()
+}
 
 // 监听页面关闭事件
 window.addEventListener('beforeunload', cleanupCurrentPreviewData);
@@ -303,282 +387,315 @@ window.addEventListener('beforeunload', cleanupCurrentPreviewData);
 
 <template>
   <div class="preview-container">
-    <div class="preview-header">
-      <h1>网页预览</h1>
-      <p>这里将显示生成的网页内容</p>
+    <!-- 上方预览窗口 -->
+    <div class="preview-iframe-container">
+      <div class="preview-header">
+        <h1>网页预览</h1>
+        <div class="preview-actions">
+          <el-button
+            type="primary"
+            :loading="isLoading"
+            :disabled="!previewData"
+              @click="resetIsFirstRequest"
+          >
+            {{ isLoading ? '调用中...' : '调用预览接口' }}
+          </el-button>
+        </div>
+      </div>
 
-      <!-- 添加调用预览接口的按钮 -->
-      <div class="preview-actions">
-        <el-button
-          type="primary"
-          :loading="isLoading"
-          :disabled="!previewData"
-          @click="callPreviewApi"
+      <div class="iframe-wrapper">
+        <!-- Element Plus 弹窗组件实现瀑布流效果 -->
+        <el-dialog
+          v-model="showMatrixOverlay"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+          :show-close="false"
+          class="matrix-dialog"
         >
-          {{ isLoading ? '调用中...' : '调用预览接口' }}
-        </el-button>
+          <div
+            ref="matrixRainRef"
+            class="matrix-rain"
+          >
+            <span
+              v-for="(char, index) in matrixText"
+              :key="index"
+              class="matrix-char"
+            >
+              {{ char }}
+            </span>
+          </div>
+        </el-dialog>
+
+        <!-- iframe 内容区域 - 只在有内容且不显示瀑布流时显示 -->
+        <div v-if="generatedContent && !showMatrixOverlay" class="ai-content-wrapper">
+          <iframe
+            :srcdoc="generatedContent"
+            class="html-content-frame"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+          ></iframe>
+        </div>
+
+        <!-- 占位符内容 - 没有内容且不在加载中时显示 -->
+        <div v-else-if="!hasContent && !showMatrixOverlay && !isLoadingContent" class="placeholder-content">
+          <div class="empty-state">
+            <el-icon size="48"><Document /></el-icon>
+            <p>输入内容并点击生成按钮开始预览</p>
+          </div>
+        </div>
+
+        <!-- 加载状态 - 只在没有内容且首次请求时显示 -->
+        <div v-else-if="!hasContent && !showMatrixOverlay && isLoadingContent && isFirstRequest" class="loading-container">
+          <div class="loading-indicator">
+            <el-icon class="is-loading"><Loading /></el-icon>
+            正在生成网页内容...
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="preview-content">
-      <!-- 显示原始预览数据 -->
-      <div v-if="previewData" class="data-display">
-        <h2>原始内容：</h2>
-        <div class="content-display">
-          {{ previewData.content }}
-        </div>
-      </div>
+    <!-- 下方输入框 -->
+    <div class="preview-input-container">
+      <Sender
+        v-model="inputValue"
+        class="preview-sender"
+        :auto-size="{
+          maxRows: 6,
+          minRows: 2,
+        }"
+        variant="updown"
+        clearable
+        :loading="inputLoading"
+        @submit="handleInputSubmit"
+      >
 
-      <!-- 生成内容区域 - 流式展示 -->
-      <div class="generated-content-container">
-        <h2>生成的内容：</h2>
-        <div class="generated-content">
-          <div v-if="generatedContent || isLoadingContent"
-               class="ai-content-wrapper">
-            <div v-if="isLoadingContent" class="loading-indicator">
-              <el-icon class="is-loading"><Loading /></el-icon>
-              生成中...
-            </div>
-            <iframe
-              :srcdoc="generatedContent"
-              class="html-content-frame"
-              frameborder="0"
-              sandbox="allow-same-origin allow-scripts"
-            ></iframe>
-          </div>
-          <div v-else class="placeholder-content">
-            点击上方按钮开始生成内容...
-          </div>
-        </div>
-      </div>
+      </Sender>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .preview-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
-  .preview-header {
-    text-align: center;
-    margin-bottom: 30px;
+  // 上方预览窗口
+  .preview-iframe-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff;
 
-    h1 {
-      color: #333;
-      margin-bottom: 10px;
-    }
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
 
-    p {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    .preview-actions {
-      margin-top: 20px;
-    }
-  }
-
-  .preview-content {
-  .data-display {
-    background: #f5f5f5;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    margin-bottom: 20px;
-
-    h2 {
-      margin-bottom: 15px;
-      color: #333;
-    }
-
-    .content-display {
-      background: #fff;
-      padding: 15px;
-      border-radius: 4px;
-      border: 1px solid #e0e0e0;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-  }
-
-  .stream-chat-container {
-    background: #f8fafc;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    margin-bottom: 20px;
-
-    h2 {
-      margin-bottom: 15px;
-      color: #334155;
-    }
-
-    .chat-messages {
-      background: #fff;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-      max-height: 400px;
-      overflow-y: auto;
-      padding: 20px;
-    }
-  }
-
-  .api-response {
-    background: #f0f9ff;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #3b82f6;
-
-    h2 {
-      margin-bottom: 15px;
-      color: #1e40af;
-    }
-
-    .generated-content {
-      background: #fff;
-      padding: 15px;
-      border-radius: 4px;
-      border: 1px solid #e0e0e0;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      margin-bottom: 20px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
-    .api-info {
-      background: #f8fafc;
-      padding: 15px;
-      border-radius: 4px;
-      border: 1px solid #e2e8f0;
-
-      h3 {
-        margin-bottom: 10px;
-        color: #334155;
+      h1 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
       }
 
-      .info-item {
-        margin-bottom: 8px;
+      .preview-actions {
+        margin-left: auto;
+      }
+    }
+
+    .iframe-wrapper {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+
+      // Element Plus 弹窗样式定制
+      :deep(.el-dialog){
+        background: #000;
+      }
+      :deep(.matrix-dialog) {
+        height: 300px;
+        width: 600px;
+        .el-dialog__header {
+          background: #000;
+          height: 0px;
+          padding: 0px !important;
+        }
+
+        .matrix-rain {
+          max-height: 260px;
+          overflow-y: auto;
+          font-size: 12px;
+          line-height: 1.4;
+          letter-spacing: 1px;
+          white-space: pre-wrap;
+          word-break: break-all;
+          box-sizing: border-box;
+          font-family: 'Courier New', monospace;
+          color: #00ff00;
+
+          .matrix-char {
+            display: inline;
+            color: #00ff00;
+
+            &:nth-child(odd) {
+              color: #00cc00;
+            }
+
+            &:nth-child(even) {
+              color: #00ff00;
+            }
+          }
+        }
+      }
+
+      .ai-content-wrapper {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .loading-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fafbfc;
+
+        .loading-indicator {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 24px;
+          background: rgba(255, 255, 255, 0.95);
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          color: #3b82f6;
+          font-size: 14px;
+
+          .el-icon {
+            font-size: 16px;
+          }
+        }
+      }
+
+      .loading-indicator {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        color: #3b82f6;
         font-size: 14px;
 
-        strong {
-          color: #475569;
-          margin-right: 8px;
+        .el-icon {
+          font-size: 16px;
+        }
+      }
+
+      .html-content-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: #fff;
+      }
+
+      .placeholder-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        background: #fafbfc;
+
+        .empty-state {
+          text-align: center;
+          color: #6b7280;
+
+          .el-icon {
+            margin-bottom: 12px;
+            color: #d1d5db;
+          }
+
+          p {
+            margin: 0;
+            font-size: 14px;
+          }
         }
       }
     }
   }
 
-  .no-api-data {
-    text-align: center;
-    padding: 40px;
-    background: #fef3c7;
-    border-radius: 8px;
-    border: 1px solid #f59e0b;
-    color: #92400e;
-  }
-
-  .no-data {
-    text-align: center;
-    padding: 40px;
-    color: #999;
-  }
-}
-
-// AI内容样式
-.ai-content-wrapper {
-  width: 100%;
-}
-
-.markdown-content {
-  line-height: 1.6;
-}
-
-.markdown-content p {
-  margin-bottom: 8px;
-}
-
-.markdown-content strong {
-  font-weight: 600;
-  color: #333;
-}
-
-.markdown-content em {
-  font-style: italic;
-  color: #555;
-}
-
-.markdown-content code {
-  background: #f5f5f5;
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9em;
-  color: #e83e8c;
-}
-
-// 用户内容样式
-.user-content {
-  white-space: pre-wrap;
-  line-height: 1.6;
-  word-break: break-word;
-}
-
-// 生成内容容器样式
-.generated-content-container {
-  background: #f0f9ff;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #3b82f6;
-  margin-bottom: 20px;
-
-  h2 {
-    margin-bottom: 15px;
-    color: #1e40af;
-  }
-
-  .generated-content {
+  // 下方输入框
+  .preview-input-container {
     background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    min-height: 100px;
-    max-height: 400px;
-    overflow-y: auto;
+    border-top: 1px solid #e5e7eb;
+    padding: 16px 24px;
 
-    .placeholder-content {
-      color: #64748b;
-      text-align: center;
-      padding: 40px 20px;
-      font-style: italic;
+    .preview-sender {
+      width: 100%;
+      margin: 0;
+
+      .input-hint {
+        color: #9ca3af;
+        font-size: 14px;
+        white-space: nowrap;
+      }
     }
+  }
+}
 
-    .loading-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #3b82f6;
-      margin-top: 12px;
-      font-size: 14px;
+// 响应式设计
+@media (max-width: 768px) {
+  .preview-container {
+    .preview-iframe-container {
+      .preview-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
 
-      .el-icon {
-        font-size: 16px;
+        .preview-actions {
+          margin-left: 0;
+          width: 100%;
+
+          .el-button {
+            width: 100%;
+          }
+        }
       }
     }
 
-    .html-content-frame {
-      width: 100%;
-      height: 400px;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      background: #fff;
+    .preview-input-container {
+      padding: 12px 16px;
     }
   }
 }
+
+// 发光效果动画
+@keyframes glow {
+  0% {
+    text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 15px #00ff00;
+  }
+  100% {
+    text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00;
+  }
 }
 </style>
