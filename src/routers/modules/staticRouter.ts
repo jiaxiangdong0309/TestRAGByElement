@@ -50,6 +50,19 @@ export const staticRouter: RouteRecordRaw[] = [
       isFull: '0',
     },
   },
+  {
+    path: '/produce',
+    name: 'produce',
+    component: () => import('@/pages/produce/index.vue'),
+    meta: {
+      title: '网页生成',
+      enName: 'Web Generation',
+      icon: 'MagicStick',
+      isHide: '1', // 在菜单中隐藏
+      isKeepAlive: '0',
+      isFull: '0',
+    },
+  },
 ];
 
 // errorRouter (错误页面路由)

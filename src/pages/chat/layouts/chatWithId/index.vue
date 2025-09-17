@@ -9,9 +9,9 @@ import type { ThinkingStatus } from 'vue-element-plus-x/types/Thinking';
 import { useHookFetch } from 'hook-fetch/vue';
 import { Sender, BubbleList, Thinking, XMarkdown, Attachments } from 'vue-element-plus-x';
 import { send_message_stream } from '@/api/dify';
-import { Document, ArrowLeftBold, ArrowRightBold } from '@element-plus/icons-vue';
+import { Document, ArrowLeftBold, ArrowRightBold, MagicStick } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-// import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 // import FilesSelect from '@/components/FilesSelect/index.vue';
 import { useFilesStore } from '@/stores/modules/files';
 import { useUserStore } from '@/stores/modules/user';
@@ -32,7 +32,7 @@ const filesStore = useFilesStore();
 const userStore = useUserStore();
 const difyStore = useDifyStore();
 // const previewStore = usePreviewStore();
-// const router = useRouter();
+const router = useRouter();
 
 
 
@@ -471,12 +471,12 @@ function handleDeleteCard(_item: FilesCardProps, index: number) {
   filesStore.deleteFileByIndex(index);
 }
 
-// 处理生成网页按钮点击
+// 处理生成网页按钮点击（跳转到预览页面）
 function handleGenerateWebpage(item: MessageItem) {
   console.log('生成网页按钮被点击', item);
   try {
     // 生成唯一ID作为key
-    const previewId = `preview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const previewId = `preview_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
     // 将数据存储到localStorage中（持久化存储）
     const previewData = {
@@ -491,6 +491,29 @@ function handleGenerateWebpage(item: MessageItem) {
     ElMessage.success('正在跳转到预览页面...');
   } catch (error) {
     console.error('跳转预览页面失败:', error);
+    ElMessage.error('跳转失败，请重试');
+  }
+}
+
+// 新增：跳转到网页生成页面
+function handleGenerateWebpageProduce(item: MessageItem) {
+  console.log('生成网页高级版本按钮被点击', item);
+  try {
+    // 将AI回复内容传递给网页生成页面
+    const generateData = {
+      content: item.content,
+      timestamp: Date.now()
+    };
+
+    // 存储到localStorage
+    localStorage.setItem('webGenerateData', JSON.stringify(generateData));
+
+    // 跳转到网页生成页面
+    router.push('/produce');
+
+    ElMessage.success('正在跳转到网页生成页面...');
+  } catch (error) {
+    console.error('跳转网页生成页面失败:', error);
     ElMessage.error('跳转失败，请重试');
   }
 }
@@ -547,6 +570,13 @@ watch(
               @click="handleGenerateWebpage(item)"
             >
               生成网页
+            </el-button>
+            <el-button
+              type="primary"
+              :icon="MagicStick"
+              @click="handleGenerateWebpageProduce(item)"
+            >
+              高级生成
             </el-button>
           </div>
         </template>
@@ -702,22 +732,39 @@ watch(
   .ai-actions {
     margin-top: 8px;
     display: flex;
+    gap: 8px;
     justify-content: flex-start; // 左对齐
 
-    .generate-webpage-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      border-radius: 6px;
+    .el-button {
       font-size: 12px;
       padding: 6px 12px;
       height: auto;
+      border-radius: 6px;
       transition: all 0.3s ease;
 
       &:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
       }
 
+      &:first-child {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+
+        &:hover {
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+      }
+
+      &:last-child {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border: none;
+        color: white;
+
+        &:hover {
+          box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+        }
+      }
       .el-icon {
         margin-right: 4px;
       }
