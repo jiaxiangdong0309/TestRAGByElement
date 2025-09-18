@@ -1,128 +1,115 @@
 <template>
   <div class="preview-section">
-    <div class="section-header">
-      <el-icon class="section-icon">
-        <View />
-      </el-icon>
-      <h3 class="section-title">页面预览</h3>
+    <div class="preview-header">
+      <div class="section-header">
+        <div class="icon-container">
+          <!-- View 图标占位符 -->
+        </div>
+        <h3 class="section-title">生成的页面预览</h3>
+      </div>
     </div>
 
     <div class="preview-container">
-      <div class="preview-header">
-        <div class="preview-controls">
-          <div class="browser-controls">
-            <div class="browser-dot red"></div>
-            <div class="browser-dot yellow"></div>
-            <div class="browser-dot green"></div>
-          </div>
-          <div class="preview-url">
-            <el-input
-              v-model="previewUrl"
-              size="small"
-              readonly
-              class="url-input"
-            />
-          </div>
-        </div>
-        <el-button
-          size="small"
-          :icon="FullScreen"
-          @click="toggleFullscreen"
-        >
-          全屏预览
-        </el-button>
-      </div>
-
       <div class="preview-content">
-        <div class="mock-page">
-          <!-- Header 模拟 -->
-          <div class="mock-header">
-            <div class="mock-logo"></div>
-            <div class="mock-nav">
-              <div class="mock-nav-item"></div>
-              <div class="mock-nav-item"></div>
-              <div class="mock-nav-item"></div>
-              <div class="mock-button"></div>
+        <div class="mock-browser">
+          <div class="mock-page">
+            <!-- Header 模拟 -->
+            <div class="mock-header">
+              <div class="mock-logo">Logo</div>
+              <div class="mock-nav">
+                <div class="nav-item">首页</div>
+                <div class="nav-item">关于</div>
+                <div class="nav-item">联系</div>
+              </div>
             </div>
-          </div>
 
-          <!-- Hero 模拟 -->
-          <div class="mock-hero">
-            <div class="mock-hero-content">
-              <div class="mock-hero-title"></div>
-              <div class="mock-hero-subtitle"></div>
-              <div class="mock-hero-button"></div>
+            <!-- Hero 模拟 -->
+            <div class="mock-hero">
+              <div class="hero-content">
+                <div class="hero-title">欢迎使用 AI 生成页面</div>
+                <div class="hero-subtitle">快速、智能、美观的页面生成体验</div>
+                <div class="hero-button">立即开始</div>
+              </div>
             </div>
-          </div>
 
-          <!-- Features 模拟 -->
-          <div class="mock-features">
-            <div class="mock-features-title"></div>
-            <div class="mock-features-grid">
-              <div class="mock-feature-card"></div>
-              <div class="mock-feature-card"></div>
-              <div class="mock-feature-card"></div>
+            <!-- Features 模拟 -->
+            <div class="mock-features">
+              <div class="features-title">核心特性</div>
+              <div class="features-grid">
+                <div class="feature-card">
+                  <div class="feature-text">智能生成</div>
+                </div>
+                <div class="feature-card">
+                  <div class="feature-text">响应式设计</div>
+                </div>
+                <div class="feature-card">
+                  <div class="feature-text">组件化</div>
+                </div>
+                <div class="feature-card">
+                  <div class="feature-text">高性能</div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <!-- Footer 模拟 -->
-          <div class="mock-footer">
-            <div class="mock-footer-content"></div>
+            <!-- Footer 模拟 -->
+            <div class="mock-footer">
+              <div class="footer-text">© 2024 Figma Make. All rights reserved.</div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- 生成完成提示 -->
-      <div class="success-banner">
-        <el-icon class="success-icon">
-          <CircleCheck />
-        </el-icon>
-        <div class="success-text">
-          <div class="success-title">生成完成！</div>
-          <div class="success-description">您的网页已经成功生成，可以进行预览和导出</div>
-        </div>
+    <!-- 生成完成提示 -->
+    <div class="success-banner">
+      <div class="success-icon">
+        <!-- CircleCheck 图标占位符 -->
+      </div>
+      <div class="success-content">
+        <div class="success-title">生成完成！</div>
+        <div class="success-description">您的页面已经成功生成，展示了完整的设计和功能实现</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { View, FullScreen, CircleCheck } from '@element-plus/icons-vue'
-
-const previewUrl = ref('https://example.com/generated-page')
-
-const toggleFullscreen = () => {
-  // 全屏预览逻辑
-  console.log('Toggle fullscreen preview')
-}
+defineOptions({
+  name: 'PreviewSection'
+})
 </script>
 
 <style scoped lang="scss">
 .preview-section {
-  background: var(--el-bg-color-page);
+  background: var(--el-bg-color);
   border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--el-box-shadow-light);
+  padding: 25px;
+  border: 1px solid var(--el-border-color-light);
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
+.preview-header {
+  margin-bottom: 40px;
+}
+
 .section-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 14px;
 }
 
-.section-icon {
-  font-size: 20px;
-  color: var(--el-color-primary);
+.icon-container {
+  width: 20px;
+  height: 20px;
+  background: var(--el-color-primary);
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--el-text-color-primary);
   margin: 0;
@@ -132,211 +119,166 @@ const toggleFullscreen = () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--el-fill-color-light);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-}
-
-.preview-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.browser-controls {
-  display: flex;
-  gap: 6px;
-}
-
-.browser-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-
-  &.red {
-    background: #ff5f56;
-  }
-
-  &.yellow {
-    background: #ffbd2e;
-  }
-
-  &.green {
-    background: #27ca3f;
-  }
-}
-
-.url-input {
-  width: 200px;
+  gap: 24px;
 }
 
 .preview-content {
   flex: 1;
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--el-border-color-light);
   border-radius: 8px;
   overflow: hidden;
+}
+
+.mock-browser {
+  min-height: 100%;
   background: white;
 }
 
 .mock-page {
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .mock-header {
-  height: 60px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  height: 56px;
+  background: var(--el-color-primary);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--el-border-color-light);
 }
 
 .mock-logo {
-  width: 32px;
-  height: 32px;
-  background: var(--el-color-primary);
-  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .mock-nav {
   display: flex;
-  align-items: center;
   gap: 16px;
 }
 
-.mock-nav-item {
-  width: 40px;
-  height: 4px;
-  background: #dee2e6;
-  border-radius: 2px;
-}
-
-.mock-button {
-  width: 60px;
-  height: 32px;
-  background: var(--el-color-primary);
-  border-radius: 4px;
+.nav-item {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .mock-hero {
-  flex: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-}
-
-.mock-hero-content {
+  padding: 32px;
+  background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
+  color: white;
   text-align: center;
 }
 
-.mock-hero-title {
-  width: 200px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 4px;
-  margin: 0 auto 16px;
+.hero-content {
+  max-width: 424px;
+  margin: 0 auto;
 }
 
-.mock-hero-subtitle {
-  width: 300px;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 4px;
-  margin: 0 auto 24px;
+.hero-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
 }
 
-.mock-hero-button {
-  width: 100px;
-  height: 40px;
+.hero-subtitle {
+  font-size: 14px;
+  margin-bottom: 24px;
+  opacity: 0.9;
+}
+
+.hero-button {
+  display: inline-block;
+  padding: 8px 16px;
   background: white;
-  border-radius: 20px;
+  color: var(--el-color-primary);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
   margin: 0 auto;
 }
 
 .mock-features {
-  padding: 40px 20px;
+  padding: 32px;
   background: white;
+  flex: 1;
 }
 
-.mock-features-title {
-  width: 120px;
-  height: 16px;
-  background: #dee2e6;
-  border-radius: 4px;
-  margin: 0 auto 32px;
+.features-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 32px;
+  color: var(--el-text-color-primary);
 }
 
-.mock-features-grid {
+.features-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  max-width: 600px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 424px;
   margin: 0 auto;
 }
 
-.mock-feature-card {
-  height: 120px;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
+.feature-card {
+  padding: 16px;
+  background: var(--el-fill-color-lighter);
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.feature-text {
+  font-size: 12px;
+  text-align: center;
+  color: var(--el-text-color-primary);
 }
 
 .mock-footer {
-  height: 80px;
-  background: #343a40;
+  padding: 16px;
+  background: var(--el-fill-color);
+  border-top: 1px solid var(--el-border-color-light);
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.success-banner {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--el-color-success);
+  border-radius: 50%;
+  margin: 0 auto 16px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.mock-footer-content {
-  width: 200px;
-  height: 12px;
-  background: #6c757d;
-  border-radius: 4px;
-}
-
-.success-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: var(--el-color-success-light-9);
-  border: 1px solid var(--el-color-success-light-8);
-  border-radius: 8px;
-}
-
-.success-icon {
-  font-size: 24px;
-  color: var(--el-color-success);
-}
-
-.success-text {
-  flex: 1;
+.success-content {
+  max-width: 540px;
+  margin: 0 auto;
 }
 
 .success-title {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--el-text-color-primary);
-  margin-bottom: 4px;
+  margin-bottom: 16px;
 }
 
 .success-description {
   font-size: 14px;
   color: var(--el-text-color-secondary);
+  line-height: 1.5;
 }
 </style>

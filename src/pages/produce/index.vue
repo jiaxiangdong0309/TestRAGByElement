@@ -1,15 +1,17 @@
 <template>
   <div class="web-generation-container">
-    <header-section />
+    <div class="content-wrapper">
+      <header-section />
 
-    <div class="main-content">
-      <div class="left-section">
-        <planning-section />
-        <code-section />
-      </div>
+      <div class="main-content">
+        <div class="left-section">
+          <planning-section />
+          <code-section />
+        </div>
 
-      <div class="right-section">
-        <preview-section />
+        <div class="right-section">
+          <preview-section />
+        </div>
       </div>
     </div>
   </div>
@@ -45,39 +47,77 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .web-generation-container {
-  min-height: 100vh;
-  background: var(--el-bg-color);
+  background: var(--el-bg-color-page);
+  padding: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.content-wrapper {
+  max-width: 1152px;
+  margin: 0 auto;
   padding: 24px;
 }
 
 .main-content {
-  display: flex;
+  display: grid;
+  grid-template-columns: 540px 540px;
   gap: 24px;
-  margin-top: 24px;
-  max-width: 1400px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-top: 0;
 }
 
 .left-section {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
 .right-section {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-@media (max-width: 1024px) {
-  .main-content {
-    flex-direction: column;
+@media (max-width: 1152px) {
+  .content-wrapper {
+    padding: 16px;
   }
 
-  .left-section,
-  .right-section {
-    flex: 100%;
+  .main-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 12px;
+  }
+
+  .main-content {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+// 页面滚动条样式
+:deep(.web-generation-container) {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--el-fill-color-lighter);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--el-border-color-darker);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--el-border-color-dark);
+    }
   }
 }
 </style>

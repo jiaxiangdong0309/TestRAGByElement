@@ -1,9 +1,9 @@
 <template>
   <div class="planning-section">
     <div class="section-header">
-      <el-icon class="section-icon">
-        <List />
-      </el-icon>
+      <div class="icon-container">
+        <!-- List 图标占位符 -->
+      </div>
       <h3 class="section-title">组件规划</h3>
     </div>
 
@@ -14,17 +14,13 @@
         class="component-item"
         :class="{ 'active': index <= currentStep }"
       >
-        <div class="component-number">{{ index + 1 }}</div>
         <div class="component-info">
-          <h4 class="component-name">{{ component.name }}</h4>
-          <p class="component-description">{{ component.description }}</p>
+          <div class="component-name">{{ component.name }}</div>
+          <div class="component-description">{{ component.description }}</div>
         </div>
-        <el-icon
-          v-if="index <= currentStep"
-          class="check-icon"
-        >
-          <Check />
-        </el-icon>
+        <div class="component-badge">
+          {{ component.badge }}
+        </div>
       </div>
     </div>
   </div>
@@ -32,34 +28,38 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { List, Check } from '@element-plus/icons-vue'
 
 interface Component {
   id: string
   name: string
   description: string
+  badge: string
 }
 
 const components: Component[] = [
   {
     id: 'header',
     name: 'Header',
-    description: 'Navigation'
+    description: 'Main navigation with logo and menu',
+    badge: 'Navigation'
   },
   {
     id: 'hero',
     name: 'Hero',
-    description: 'Banner'
+    description: 'Eye-catching hero section with CTA',
+    badge: 'Banner'
   },
   {
     id: 'features',
     name: 'Features',
-    description: 'Content'
+    description: 'Feature showcase grid',
+    badge: 'Content'
   },
   {
     id: 'footer',
     name: 'Footer',
-    description: 'Navigation'
+    description: 'Footer with links and contact info',
+    badge: 'Navigation'
   }
 ]
 
@@ -81,26 +81,30 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .planning-section {
-  background: var(--el-bg-color-page);
+  background: var(--el-bg-color);
   border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--el-box-shadow-light);
+  padding: 25px;
+  border: 1px solid var(--el-border-color-light);
+  margin-bottom: 24px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 40px;
 }
 
-.section-icon {
-  font-size: 20px;
-  color: var(--el-color-primary);
+.icon-container {
+  width: 20px;
+  height: 20px;
+  background: var(--el-color-primary);
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--el-text-color-primary);
   margin: 0;
@@ -109,65 +113,55 @@ onMounted(() => {
 .components-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
 
 .component-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: var(--el-fill-color-light);
-  border-radius: 8px;
-  border: 2px solid transparent;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   transition: all 0.3s ease;
 
-  &.active {
-    background: var(--el-color-primary-light-9);
-    border-color: var(--el-color-primary);
+  &:last-child {
+    border-bottom: none;
   }
-}
 
-.component-number {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--el-fill-color-blank);
-  border: 2px solid var(--el-border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: var(--el-text-color-secondary);
-  flex-shrink: 0;
-
-  .component-item.active & {
-    background: var(--el-color-primary);
-    border-color: var(--el-color-primary);
-    color: white;
+  &.active {
+    .component-name {
+      color: var(--el-color-primary);
+    }
   }
 }
 
 .component-info {
   flex: 1;
+  padding-left: 12px;
 }
 
 .component-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--el-text-color-primary);
-  margin: 0 0 4px 0;
+  margin-bottom: 4px;
 }
 
 .component-description {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--el-text-color-secondary);
-  margin: 0;
+  line-height: 1.4;
 }
 
-.check-icon {
-  font-size: 20px;
-  color: var(--el-color-success);
-  flex-shrink: 0;
+.component-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 </style>
