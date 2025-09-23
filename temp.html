@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<!--
+结构化整理与设计决策
+- 信息层级
+  1) 顶部栏：标题、摘要、主题切换、搜索（过滤岗位表格）
+  2) 概览与结论：关键信息卡片（在招类别、武汉HC、语言转换）
+  3) 数据区：
+     - 武汉地区语言方向需求分布（SVG 柱状图）+ 文本数据替代
+     - “关键岗位及要求”二维表（可排序/可过滤）
+  4) 流程与注意事项：招聘流程步骤、注意事项与差异点
+  5) 建议与沟通话术：面向候选人/供应商HR
+  6) 参考方向与风险提示
+  7) 页尾固定文案
+- 字段映射
+  - 结论 → 概览卡片与“概览与结论”分节
+  - 关键岗位表 → HTML 表格（支持排序、搜索过滤）
+  - 招聘流程 → 有序列表
+  - 注意事项/差异点 → 无序列表
+  - 武汉HC明细 → SVG 柱状图 + 数据替代列表
+  - 建议话术 → 引用块
+  - 参考与风险 → 列表
+- 表格/图表
+  - 表格：岗位类别/技术方向/核心技能/语言要求 → 支持列排序与搜索过滤
+  - 图表：武汉地域需求为离散类目分布 → 采用柱状图（SVG 内联），含轴/刻度/标签/title 提示，并提供下方文本数据替代
+- 交互点列表
+  - 主题切换（按钮，role="switch"，localStorage 持久化，默认跟随系统）
+  - 表格列排序（点击/Enter/Space）
+  - 表格搜索过滤（输入实时过滤）
+  - 分节折叠/展开（<details> 原生可访问）
+  - 返回顶部（按钮，键盘可用）
+- 深/浅色处理
+  - 在 <html> 上切换 data-theme="light|dark"
+  - 使用 CSS 变量控制前景/背景/边框/强调色，确保高对比度
+- 无障碍
+  - 语义化标签、可聚焦交互元素、aria-属性（aria-checked、aria-sort 等）
+  - details/summary 原生组件用于折叠，按钮支持键盘操作
+- 性能
+  - 单文件，CSS/JS 内联；脚本置底并按需绑定；无外链、无图片、无网络请求
+-->
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>华为OD在招岗位要点（结构化单页）</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #0f172a;
+      --muted: #64748b;
+      --card: #f8fafc;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --on-accent: #ffffff;
+      --accent-weak: #dbeafe;
+      --shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 16px rgba(0,0,0,.06);
+      --focus: #22c55e;
+      --danger: #ef4444;
+    }
+    html[data-theme="dark"] {
+      --bg: #0b1220;
+      --fg: #e5e7eb;
+      --muted: #a3a7b0;
+      --card: #101826;
+      --border: #243245;
+      --accent: #60a5fa;
+      --on-accent: #0b1220;
+      --accent-weak: #1e293b;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 20px rgba(0,0,0,.35);
+      --focus: #22c55e;
+      --danger: #f87171;
+    }
+    /* 基础排版 */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    h1,h2,h3 { margin: 0 0 .5rem 0; line-height: 1.3; }
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 1.1rem; }
+    p { margin: .5rem 0; }
+    code,kbd,samp { font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; font-size: .95em; background: var(--accent-weak); color: inherit; padding: .1rem .3rem; border-radius: .35rem; }
+    blockquote { margin: .5rem 0; padding: .5rem .75rem; border-left: 3px solid var(--accent); background: color-mix(in oklab, var(--accent-weak) 70%, transparent); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    /* 原子类（仅本页用到的最小集合） */
+    .container { max-width: 1100px; margin-inline: auto; padding-inline: 1rem; }
+    .flex { display: flex; }
+    .inline-flex { display: inline-flex; }
+    .grid { display: grid; }
+    .grid-auto { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-end { justify-content: flex-end; }
+    .gap-2 { gap: .5rem; }
+    .gap-3 { gap: .75rem; }
+    .gap-4 { gap: 1rem; }
+    .p-2 { padding: .5rem; }
+    .p-3 { padding: .75rem; }
+    .p-4 { padding: 1rem; }
+    .px-3 { padding-left: .75rem; padding-right: .75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-1 { padding-top: .25rem; padding-bottom: .25rem; }
+    .py-2 { padding-top: .5rem; padding-bottom: .5rem; }
+    .mt-2 { margin-top: .5rem; }
+    .mt-3 { margin-top: .75rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mb-2 { margin-bottom: .5rem; }
+    .my-2 { margin-top: .5rem; margin-bottom: .5rem; }
+    .rounded { border-radius: .5rem; }
+    .rounded-md { border-radius: .6rem; }
+    .shadow { box-shadow: var(--shadow); }
+    .border { border: 1px solid var(--border); }
+    .bg-card { background: var(--card); }
+    .bg-accent { background: var(--accent); }
+    .text-on-accent { color: var(--on-accent); }
+    .text-muted { color: var(--muted); }
+    .text-sm { font-size: .9rem; }
+    .text-xs { font-size: .8rem; }
+    .text-lg { font-size: 1.1rem; }
+    .text-xl { font-size: 1.35rem; }
+    .font-bold { font-weight: 700; }
+    .font-medium { font-weight: 600; }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .w-full { width: 100%; }
+    .cursor-pointer { cursor: pointer; }
+    .hidden { display: none; }
+    .hover\:opacity-90:hover { opacity: .9; }
+    .focus-ring:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: .5rem; }
+    /* 头部与卡片 */
+    header { position: sticky; top: 0; backdrop-filter: saturate(180%) blur(10px); background: color-mix(in oklab, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); z-index: 10; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: .75rem; box-shadow: var(--shadow); }
+    .kpi { display: grid; grid-template-columns: 1fr auto; gap: .25rem; }
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .65rem .75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { text-align: left; background: color-mix(in oklab, var(--card) 85%, transparent); position: relative; user-select: none; }
+    th.sortable { cursor: pointer; }
+    th .sort-ind { font-size: .8em; opacity: .7; margin-left: .25rem; }
+    tr:hover td { background: color-mix(in oklab, var(--card) 70%, transparent); }
+    caption { caption-side: bottom; padding: .5rem 0; color: var(--muted); }
+    /* details 分节 */
+    details { background: var(--card); border: 1px solid var(--border); border-radius: .75rem; padding: .25rem .5rem .75rem .5rem; }
+    summary { list-style: none; cursor: pointer; padding: .5rem; margin: .25rem 0 .5rem 0; border-radius: .5rem; }
+    summary::-webkit-details-marker { display: none; }
+    summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+    summary .tag { display: inline-block; background: var(--accent-weak); color: var(--fg); padding: .1rem .5rem; border-radius: 999px; margin-left: .5rem; font-size: .8rem; }
+    /* SVG 图表容器 */
+    .chart-wrap { overflow: auto; }
+    .legend { display: inline-flex; align-items: center; gap: .35rem; background: var(--card); border: 1px dashed var(--border); border-radius: .5rem; padding: .25rem .5rem; }
+    .legend .dot { width: .8rem; height: .8rem; border-radius: 999px; background: var(--accent); border: 1px solid var(--border); }
+    /* 顶部输入 */
+    .input { background: var(--bg); border: 1px solid var(--border); color: var(--fg); border-radius: .5rem; padding: .5rem .75rem; }
+    .btn { border: 1px solid var(--border); background: var(--accent); color: var(--on-accent); padding: .45rem .75rem; border-radius: .6rem; }
+    .btn-ghost { background: transparent; color: var(--fg); }
+    /* 布局撑底与页尾 */
+    main { flex: 1; }
+    footer { border-top: 1px solid var(--border); padding: .75rem 1rem; }
+    /* 返回顶部按钮 */
+    .to-top { position: fixed; right: 1rem; bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <header id="top">
+    <div class="container p-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h1 class="text-xl font-bold">华为 OD 项目在招岗位类别及关键要求</h1>
+          <p class="text-sm text-muted">基于提供的资料与通用招聘规则的结构化整理，支持深浅色与本地预览。</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-muted" for="tableSearch">搜索岗位</label>
+          <input id="tableSearch" class="input focus-ring" type="search" placeholder="按岗位/方向过滤…" aria-label="搜索岗位表格" />
+          <button id="themeToggle" class="inline-flex items-center gap-2 btn hover:opacity-90 focus-ring" role="switch" aria-checked="false" aria-label="切换主题">
+            <span aria-hidden="true">🌓</span><span class="text-sm">主题</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container p-4">
+    <!-- 概览与结论 -->
+    <details open class="mt-2">
+      <summary class="flex items-center justify-between">
+        <span class="text-lg font-medium">概览与结论</span>
+        <span class="tag">摘要</span>
+      </summary>
+      <div class="grid grid-auto gap-4">
+        <div class="card p-4 kpi">
+          <div>
+            <div class="text-sm text-muted">在招岗位类别</div>
+            <div class="text-lg font-bold">软件开发、工具开发、算法、方案测试</div>
+          </div>
+          <div class="text-right text-sm text-muted">当前明确</div>
+        </div>
+        <div class="card p-4 kpi">
+          <div>
+            <div class="text-sm text-muted">武汉地区软件开发 HC</div>
+            <div class="text-lg font-bold">30 人</div>
+          </div>
+          <div class="text-right"><span class="legend"><span class="dot"></span><span class="text-xs">地域差异</span></span></div>
+        </div>
+        <div class="card p-4 kpi">
+          <div>
+            <div class="text-sm text-muted">语言转换要求</div>
+            <div class="text-lg font-bold">入职开发岗需转 C/C++</div>
+          </div>
+          <div class="text-right text-sm text-muted">≥3年转型风险较高</div>
+        </div>
+      </div>
+      <p class="mt-3">当前明确在招的 OD 岗位包括：<strong>软件开发类（嵌入式/工具/算法）</strong>与<strong>方案测试类（软件/自动化测试）</strong>。武汉地区开发岗明确 30 人，其他地域未披露但存在机会。</p>
+    </details>
+
+    <!-- 武汉地区需求分布（图表） -->
+    <details class="mt-2">
+      <summary class="flex items-center justify-between">
+        <span class="text-lg font-medium">武汉地区语言方向需求分布（示意）</span>
+        <span class="tag">可视化</span>
+      </summary>
+      <div class="card p-4">
+        <div class="chart-wrap">
+          <!-- 简洁柱状图：X=语言方向，Y=人数；数值：C++5 / Java11 / JS10 / Android2 / iOS2 -->
+          <svg viewBox="0 0 520 260" width="100%" role="img" aria-labelledby="chartTitle chartDesc">
+            <title id="chartTitle">武汉地区语言方向需求柱状图</title>
+            <desc id="chartDesc">C++ 5人，Java 11人，JS 10人，Android 2人，iOS 2人。</desc>
+            <!-- 轴与网格 -->
+            <g transform="translate(50,10)">
+              <!-- Y 轴刻度与网格（0-12） -->
+              <g stroke="currentColor" opacity="0.25">
+                <!-- 6 条网格线每隔 ~40px -->
+                <line x1="0" y1="200" x2="420" y2="200"></line>
+                <line x1="0" y1="160" x2="420" y2="160"></line>
+                <line x1="0" y1="120" x2="420" y2="120"></line>
+                <line x1="0" y1="80" x2="420" y2="80"></line>
+                <line x1="0" y1="40" x2="420" y2="40"></line>
+                <line x1="0" y1="0" x2="420" y2="0"></line>
+              </g>
+              <!-- 轴线 -->
+              <g stroke="currentColor" opacity="0.6">
+                <line x1="0" y1="200" x2="420" y2="200" stroke-width="1.5"></line>
+                <line x1="0" y1="0" x2="0" y2="200" stroke-width="1.5"></line>
+              </g>
+              <!-- Y 轴标签 -->
+              <g fill="currentColor" opacity="0.7" font-size="10">
+                <text x="-20" y="200" text-anchor="end" dy="3">0</text>
+                <text x="-20" y="160" text-anchor="end" dy="3">3</text>
+                <text x="-20" y="120" text-anchor="end" dy="3">6</text>
+                <text x="-20" y="80" text-anchor="end" dy="3">9</text>
+                <text x="-20" y="40" text-anchor="end" dy="3">12</text>
+              </g>
+              <!-- 柱宽与位置 -->
+              <!-- 比例：max=12 → 200px 高度；值* (200/12)=值*16.67 -->
+              <!-- 数据：C++5, Java11, JS10, Android2, iOS2 -->
+              <g>
+                <!-- C++ -->
+                <g transform="translate(20,0)">
+                  <title>C++：5人</title>
+                  <rect x="0" y="200" width="60" height="0" fill="var(--accent)">
+                    <!-- 初始高度 0，为视觉平滑可动画（纯CSS/SVG此处保持静态） -->
+                  </rect>
+                  <rect x="0" y="116.5" width="60" height="83.5" fill="var(--accent)" rx="4" />
+                  <text x="30" y="112" text-anchor="middle" font-size="10" fill="currentColor">5</text>
+                  <text x="30" y="220" text-anchor="middle" font-size="11" fill="currentColor">C++</text>
+                </g>
+                <!-- Java -->
+                <g transform="translate(110,0)">
+                  <title>Java：11人</title>
+                  <rect x="0" y="16.7" width="60" height="183.3" fill="var(--accent)" rx="4" />
+                  <text x="30" y="12" text-anchor="middle" font-size="10" fill="currentColor">11</text>
+                  <text x="30" y="220" text-anchor="middle" font-size="11" fill="currentColor">Java</text>
+                </g>
+                <!-- JS -->
+                <g transform="translate(200,0)">
+                  <title>JS：10人</title>
+                  <rect x="0" y="33.3" width="60" height="166.7" fill="var(--accent)" rx="4" />
+                  <text x="30" y="29" text-anchor="middle" font-size="10" fill="currentColor">10</text>
+                  <text x="30" y="220" text-anchor="middle" font-size="11" fill="currentColor">JS</text>
+                </g>
+                <!-- Android -->
+                <g transform="translate(290,0)">
+                  <title>Android：2人</title>
+                  <rect x="0" y="166.7" width="60" height="33.3" fill="var(--accent)" rx="4" />
+                  <text x="30" y="162" text-anchor="middle" font-size="10" fill="currentColor">2</text>
+                  <text x="30" y="220" text-anchor="middle" font-size="11" fill="currentColor">Android</text>
+                </g>
+                <!-- iOS -->
+                <g transform="translate(380,0)">
+                  <title>iOS：2人</title>
+                  <rect x="0" y="166.7" width="60" height="33.3" fill="var(--accent)" rx="4" />
+                  <text x="30" y="162" text-anchor="middle" font-size="10" fill="currentColor">2</text>
+                  <text x="30" y="220" text-anchor="middle" font-size="11" fill="currentColor">iOS</text>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="text-sm text-muted mt-2" role="note">
+          数据替代：C++ 5人；Java 11人；JS 10人；Android 2人；iOS 2人。若无法显示 SVG，仍可从本段获取关键信息。
+        </div>
+      </div>
+    </details>
+
+    <!-- 关键岗位及要求（可排序表格） -->
+    <details class="mt-2" open>
+      <summary class="flex items-center justify-between">
+        <span class="text-lg font-medium">关键岗位及要求（可排序/可过滤）</span>
+        <span class="tag">表格</span>
+      </summary>
+      <div class="card p-4">
+        <div class="text-xs text-muted mb-2">提示：点击表头排序；顶部“搜索岗位”可按岗位/方向过滤。</div>
+        <div role="region" aria-label="关键岗位表格容器">
+          <table id="jobTable" aria-describedby="jobTableCap">
+            <caption id="jobTableCap">岗位表聚焦“岗位类别/技术方向/核心技能/语言要求”；支持排序与搜索过滤。</caption>
+            <thead>
+              <tr>
+                <th scope="col" class="sortable" data-sort-type="text" tabindex="0" aria-sort="none">岗位类别 <span class="sort-ind">↕</span></th>
+                <th scope="col" class="sortable" data-sort-type="text" tabindex="0" aria-sort="none">技术方向 <span class="sort-ind">↕</span></th>
+                <th scope="col" class="sortable" data-sort-type="text" tabindex="0" aria-sort="none">核心技能要求 <span class="sort-ind">↕</span></th>
+                <th scope="col" class="sortable" data-sort-type="text" tabindex="0" aria-sort="none">语言要求（面试/入职） <span class="sort-ind">↕</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>软件开发工程师</td>
+                <td>嵌入式开发 / 内核驱动 / 工具开发</td>
+                <td>精通 C 语言，熟悉 ARM/RISC-V 架构、BSP/小系统开发、硬件接口（UART/I2C/SPI 等）</td>
+                <td>面试任选 C/C++/Java/Python → <strong>入职后需转 C/C++</strong>（毕业≤3年）</td>
+              </tr>
+              <tr>
+                <td>工具开发工程师</td>
+                <td>显示 / 触控 / 指纹 工具开发</td>
+                <td>熟练 C++/Qt，掌握数据结构/设计模式；TV/Monitor/Pad 经验优先</td>
+                <td>面试语言不限 → <strong>入职后以 C++ 为主</strong></td>
+              </tr>
+              <tr>
+                <td>算法工程师</td>
+                <td>显示效果 / 图像算法</td>
+                <td>图像效果调试/评测，熟悉光学测量（如 CA 设备），具备算法设计/仿真能力</td>
+                <td>面试任选 C/C++/Java/Python/Tcl/Perl/Shell 之一</td>
+              </tr>
+              <tr>
+                <td>方案测试工程师</td>
+                <td>软件测试 / 自动化测试</td>
+                <td>测试用例设计/自动化经验；显示/触控芯片或消费电子验证经验优先</td>
+                <td>面试任选 C/C++/Java/Python → <strong>入职后需转 C/C++/Python</strong>（接受 Java 转语言）</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <!-- 招聘流程 -->
+    <details class="mt-2">
+      <summary class="flex items-center justify-between">
+        <span class="text-lg font-medium">招聘流程核心步骤</span>
+        <span class="tag">流程</span>
+      </summary>
+      <div class="card p-4">
+        <ol>
+          <li><strong>简历筛选</strong>：匹配学历（本科+）、技术栈、项目经验（毕业 2 年内可放宽）。</li>
+          <li><strong>机考</strong>：
+            <ul>
+              <li><strong>目标院校</strong>：≥150 分（无 CET-4/6 需提供英语测试/雅思托福）。</li>
+              <li><strong>非目标院校</strong>：≥320 分（定级 D3+ 可放宽至 150 分）。</li>
+            </ul>
+          </li>
+          <li><strong>面试</strong>：技术面 + 综面，按岗位语言要求选择面试语言。</li>
+          <li><strong>定级与录用</strong>：依据机考+面试综合评估定级（D1–D5），供应商谈薪并发 Offer。</li>
+        </ol>
+      </div>
+    </details>
+
+    <!-- 注意事项 -->
+    <details class="mt-2">
+      <summary class="flex items-center justify-between">
+        <span class="text-lg font-medium">注意事项与差异点</span>
+        <span class="tag">重点</span>
+      </summary>
+      <div class="card p-4">
+        <ul>
+          <li><strong>地域差异</strong>：武汉明确招 30 人（C++:5 / Java:11 / JS:10 / Android:2 / iOS:2），其他城市未披露。</li>
+          <li><strong>语言转换风险</strong>：开发岗入职后<strong>强制转 C/C++</strong>；3 年以上经验者转型成功率低，需提前确认意向。</li>
+          <li><strong>经验豁免</strong>：应届/毕业 2 年内可放宽经验，但需通过机考/面试弥补。</li>
+          <li><strong>隐性偏好</strong>：显示/触控（TCON/DDIC/Touch 芯片）、消费电子（TV/Monitor/手机）经验优先。</li>
+        </ul>
+      </div>
+    </details>
+
+    <!-- 建议与沟通话术 -->
+    <details class="mt-2">
+      <summary class="flex items-center justify-between">
+        <span class="text-lg font-medium">下一步建议与沟通话术</span>
+        <span class="tag">话术</span>
+      </summary>
+      <div class="grid grid-auto gap-4">
+        <div class="card p-4">
+          <h3 class="font-medium">对候选人</h3>
+          <blockquote>
+            “您投递的 <code>软件开发（嵌入式）</code> 岗需以 <code>C/C++</code> 为主要语言，面试可用 Java/Python 过渡，但入职后需快速切换至 C/C++。若您有显示/触控项目经验，请重点突出。”
+          </blockquote>
+        </div>
+        <div class="card p-4">
+          <h3 class="font-medium">对供应商 HR</h3>
+          <blockquote>
+            “武汉地区 Java 岗需求 11 人，是否接受非目标院校 320 分 + 3 年经验候选人？若候选人当前用 Java，能否确保入职后 1–3 个月内完成 C++ 转型？”
+          </blockquote>
+        </div>
+      </div>
+    </details>
+
+    <!-- 参考方向与风险 -->
+    <details class="mt-2">
+      <summary class="flex items-center justify-between">
+        <span class="text-lg font-medium">参考方向与风险提示</span>
+        <span class="tag">参考</span>
+      </summary>
+      <div class="card p-4">
+        <ul>
+          <li><strong>核实渠道</strong>：
+            <ul>
+              <li>供应商 HR 获取最新地域/HC 清单</li>
+              <li>华为招聘官网“社会招聘”（筛选“OD/外包”）</li>
+            </ul>
+          </li>
+          <li><strong>风险提示</strong>：
+            <ul>
+              <li>机考分数<strong>不可跨项目复用</strong>（新岗位需重考）。</li>
+              <li>“非保护单位”指候选人当前公司<strong>非华为竞争对手或敏感机构</strong>（如军工），需背调确认。</li>
+              <li>定级 D3+ 的“放宽机考至 150 分”<strong>非承诺条款</strong>，最终以面试评级为准。</li>
+            </ul>
+          </li>
+        </ul>
+        <p class="text-xs text-muted my-2"><strong>注</strong>：以上基于提供文档与通用规则，具体岗位释放节奏以供应商实时 HC 为准，建议每周同步一次需求清单。</p>
+      </div>
+    </details>
+  </main>
+
+  <button id="toTop" class="to-top inline-flex items-center gap-2 px-4 py-2 rounded bg-card border shadow focus-ring" aria-label="返回顶部">
+    ⤴ 返回顶部
+  </button>
+
+  <footer class="text-center text-sm text-muted">
+    大石头碎剪刀
+  </footer>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const themeKey = 'page-theme';
+      const btn = document.getElementById('themeToggle');
+      const prefersDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const setTheme = (t) => {
+        root.setAttribute('data-theme', t);
+        if (btn) btn.setAttribute('aria-checked', String(t === 'dark'));
+      };
+      // 初始化主题：localStorage 优先，其次跟随系统
+      const saved = localStorage.getItem(themeKey);
+      setTheme(saved ? saved : (prefersDark() ? 'dark' : 'light'));
+      btn && btn.addEventListener('click', () => {
+        const cur = root.getAttribute('data-theme') || 'light';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        setTheme(next);
+        localStorage.setItem(themeKey, next);
+      });
+      btn && btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
+      });
+
+      // 表格排序与搜索过滤
+      const table = document.getElementById('jobTable');
+      const search = document.getElementById('tableSearch');
+      let currentSort = { col: -1, dir: 1 };
+
+      function getCellText(td) {
+        return (td.textContent || '').trim().toLowerCase();
+      }
+      function applyFilter() {
+        if (!table) return;
+        const q = (search.value || '').trim().toLowerCase();
+        const rows = Array.from(table.tBodies[0].rows);
+        rows.forEach(tr => {
+          // 仅用“岗位类别 + 技术方向”过滤
+          const key = (getCellText(tr.cells[0]) + ' ' + getCellText(tr.cells[1]));
+          tr.style.display = q ? (key.includes(q) ? '' : 'none') : '';
+        });
+      }
+      function sortBy(col, type) {
+        if (!table) return;
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows).filter(r => r.style.display !== 'none');
+        // 切换方向
+        if (currentSort.col === col) currentSort.dir *= -1;
+        else { currentSort.col = col; currentSort.dir = 1; }
+        // aria-sort
+        Array.from(table.tHead.rows[0].cells).forEach((th, i) => {
+          th.setAttribute('aria-sort', i === col ? (currentSort.dir === 1 ? 'ascending' : 'descending') : 'none');
+        });
+        rows.sort((a, b) => {
+          const A = getCellText(a.cells[col]);
+          const B = getCellText(b.cells[col]);
+          if (type === 'number') {
+            const nA = parseFloat(A) || 0, nB = parseFloat(B) || 0;
+            return (nA - nB) * currentSort.dir;
+          } else {
+            return A.localeCompare(B, 'zh-Hans') * currentSort.dir;
+          }
+        });
+        rows.forEach(r => tbody.appendChild(r));
+      }
+      if (table) {
+        Array.from(table.tHead.rows[0].cells).forEach((th, i) => {
+          if (!th.classList.contains('sortable')) return;
+          const type = th.getAttribute('data-sort-type') || 'text';
+          th.addEventListener('click', () => sortBy(i, type));
+          th.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sortBy(i, type); }
+          });
+        });
+      }
+      search && search.addEventListener('input', applyFilter);
+
+      // 返回顶部
+      const toTop = document.getElementById('toTop');
+      function scrollTopSmooth() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      toTop && toTop.addEventListener('click', scrollTopSmooth);
+      toTop && toTop.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); scrollTopSmooth(); }
+      });
+    })();
+  </script>
+</body>
+</html>

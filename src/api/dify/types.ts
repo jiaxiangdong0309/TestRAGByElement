@@ -220,6 +220,7 @@ export interface PreviewRequest {
   updateContext: string;
   isUpdate: number;
   user: string;
+  response_mode: 'streaming' | 'blocking';
 }
 
 //预览响应

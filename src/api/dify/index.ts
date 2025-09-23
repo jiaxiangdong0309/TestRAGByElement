@@ -18,7 +18,7 @@ import type {
 import hookFetch from 'hook-fetch';
 import { sseTextDecoderPlugin } from 'hook-fetch/plugins';
 import { useUserStore } from '@/stores';
-import { API_URL, API_KEY, PREVIEW_API_KEY } from '@/config/localConfig';
+import { API_URL, API_KEY, PREVIEW_API_KEY, API_URL_PREVIEW } from '@/config/localConfig';
 
 // Key 类型定义
 export type DifyKeyType = 'normal' | 'preview';
@@ -47,6 +47,12 @@ function difyAuthPlugin(defaultKeyType: DifyKeyType = 'normal') {
     },
   };
 }
+
+// 根据环境选择baseURL
+const getBaseURLPreview = () => {
+  // 生产环境使用API_URL
+  return API_URL_PREVIEW;
+};
 
 // 根据环境选择baseURL
 const getBaseURL = () => {
@@ -81,7 +87,7 @@ const difyRequest = hookFetch.create({
 
 // 创建预览专用 Dify API 请求实例（使用 preview key）
 const difyPreviewRequest = hookFetch.create({
-  baseURL: getBaseURL(),
+  baseURL: getBaseURLPreview(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -187,7 +193,7 @@ export function send_message_stream_preview(data: PreviewRequest) {
 
   return difyPreviewRequest.post('/workflows/run', {
     ...data,
-    response_mode: 'streaming'
+
   });
 }
 

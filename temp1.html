@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>东莞运维/测试岗与北京Java岗差异分析</title>
+    <meta name="description" content="详细分析东莞运维/测试岗位与北京Java岗位在地域、岗位类别、技术栈等方面的关键差异">
+    <meta name="keywords" content="岗位差异,地域差异,技术栈,Java岗位,运维测试岗">
+    <meta property="og:title" content="东莞运维/测试岗与北京Java岗差异分析">
+    <meta property="og:description" content="详细分析东莞运维/测试岗位与北京Java岗位在地域、岗位类别、技术栈等方面的关键差异">
+    <meta property="og:type" content="article">
+    <style>
+        :root {
+            --bg: #0b1220;
+            --fg: #e6eaf2;
+            --muted: #9aa4b2;
+            --card: #111827;
+            --border: #1f2937;
+            --accent: #2563eb;
+
+            --container: 72ch;
+            --container-wide: 1200px;
+
+            --fs-sm: 0.875rem;
+            --fs-md: 1rem;
+            --fs-lg: 1.125rem;
+            --fs-xl: 1.375rem;
+            --fs-2xl: 1.875rem;
+
+            --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+            --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.2);
+            --shadow-md: 0 8px 24px rgba(0,0,0,.24);
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #ffffff;
+                --fg: #0f172a;
+                --muted: #4b5563;
+                --card: #f8fafc;
+                --border: #e5e7eb;
+            }
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0; background: var(--bg); color: var(--fg);
+            font: 400 16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji";
+            -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+            padding-bottom: 120px;
+        }
+        a { color: var(--accent); text-underline-offset: 2px; }
+        a:hover { text-decoration: underline; }
+        .container { max-width: var(--container); margin: 0 auto; padding: 0 var(--sp-5); }
+        .container-wide { max-width: var(--container-wide); margin: 0 auto; padding: 0 var(--sp-6); }
+        .section { margin: var(--sp-6) 0; }
+        h1,h2,h3 { line-height: 1.25; margin: var(--sp-5) 0 var(--sp-3); }
+        h1 { font-size: clamp(28px, 4vw, 40px); }
+        h2 { font-size: clamp(22px, 3vw, 28px); }
+        h3 { font-size: clamp(18px, 2.5vw, 22px); }
+        p { margin: var(--sp-3) 0; }
+        .muted { color: var(--muted); }
+        .hero {
+            padding: calc(var(--sp-6) * 1.5) 0 var(--sp-6);
+            background:
+                radial-gradient(1200px 600px at 20% -10%, rgba(37,99,235,.25), transparent 60%),
+                radial-gradient(1200px 600px at 80% -10%, rgba(6,182,212,.20), transparent 60%);
+        }
+        .hero.centered { text-align: center; }
+        .hero .title { font-size: clamp(32px, 6vw, 56px); font-weight: 700; margin-bottom: var(--sp-3); }
+        .hero .subtitle { font-size: var(--fs-lg); color: var(--muted); max-width: 72ch; margin: 0 auto; }
+        .btn {
+            display: inline-block; border-radius: var(--radius-md); padding: 10px 16px;
+            background: var(--accent); color: white; text-decoration: none; font-weight: 600;
+            box-shadow: var(--shadow-sm); transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: var(--sp-5); box-shadow: var(--shadow-sm);
+        }
+        .prose h2, .prose h3 { scroll-margin-top: 80px; }
+        .prose p { margin: var(--sp-3) 0; }
+        .prose ul, .prose ol { margin: var(--sp-3) 0 var(--sp-5); padding-left: 1.25rem; }
+        .prose li { margin: 6px 0; }
+        .prose blockquote {
+            margin: var(--sp-5) 0; padding: var(--sp-3) var(--sp-5);
+            border-left: 3px solid var(--accent);
+            background: rgba(148,163,184,.08); border-radius: var(--radius-sm);
+        }
+        .prose code { background: rgba(148,163,184,.15); padding: 0 .33em; border-radius: 6px; }
+        pre { background: #0a0f1a; color: #e6eaf2; padding: var(--sp-5); border-radius: var(--radius-lg); overflow: auto; }
+        pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+        .grid { display: grid; gap: var(--sp-5); }
+        .grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+        @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+        th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+        tbody tr:nth-child(odd) { background: rgba(148,163,184,.06); }
+        .faq details { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 16px; background: var(--card); }
+        .faq details + details { margin-top: var(--sp-3); }
+        summary { cursor: pointer; font-weight: 600; }
+        #page-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: var(--sp-4);
+            text-align: center;
+            font-size: var(--fs-sm);
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+    <header id="hero-1" class="hero centered">
+        <div class="container">
+            <h1 class="title">东莞运维/测试岗与北京Java岗差异分析</h1>
+            <p class="subtitle">详细分析两地岗位在地域、岗位类别、技术栈等方面的关键差异</p>
+        </div>
+    </header>
+
+    <main id="main-article" class="container">
+        <section id="intro-1" class="section">
+            <article id="text-1" class="prose">
+                <p>根据您提供的信息与查询需求，需明确以下关键差异点：<strong>当前信息包为东莞运维/测试岗，与「北京Java岗」存在地域、岗位类别、技术栈三重差异</strong>。以下是针对性解答框架：</p>
+            </article>
+        </section>
+
+        <section id="conclusion-2" class="section">
+            <article id="text-2" class="prose card">
+                <h2>1) 结论</h2>
+                <p>当前信息包<strong>不适用</strong>北京Java岗位，需重新定向资源。北京Java类OD岗位的通用流程与东莞存在地域性差异，需优先核实供应商与项目组信息。</p>
+            </article>
+        </section>
+
+        <section id="key-points-3" class="section">
+            <article id="text-3" class="prose card">
+                <h2>2) 关键要点（北京Java岗通用逻辑）</h2>
+
+                <h3>岗位类别</h3>
+                <p>多为「软件开发工程师」后端开发工程师」，JD常要求：</p>
+                <ul>
+                    <li>技术栈：Java 8+/Spring Boot/微服务/数据库(MySQL/Oracle)</li>
+                    <li>附加能力：分布式中间件(RocketMQ/Dubbo)、云原生(Docker/K8s)、单元测试(JUnit/Mockito)</li>
+                </ul>
+
+                <h3>薪资构成差异（北京vs东莞）</h3>
+                <div id="table-wrap-1" class="table-wrap">
+                    <table id="table-1">
+                        <thead>
+                            <tr>
+                                <th>项目</th>
+                                <th>北京特点（示意）</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>固定薪资</td>
+                                <td>基数高于二三线城市（同职级）</td>
+                            </tr>
+                            <tr>
+                                <td>住房补贴</td>
+                                <td>部分供应商提供，额度与职级挂钩</td>
+                            </tr>
+                            <tr>
+                                <td>餐补</td>
+                                <td>园区食堂补贴或餐卡，标准更高</td>
+                            </tr>
+                            <tr>
+                                <td>通勤</td>
+                                <td>无跨市班车，需关注地铁接驳路线</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>流程差异</h3>
+                <ul>
+                    <li>北京面试多采用「线下面试+线上编码机考」结合</li>
+                    <li>技术面试轮次可能增加（常见3-4轮，含架构设计轮）</li>
+                </ul>
+            </article>
+        </section>
+
+        <section id="recommendations-4" class="section">
+            <article id="text-4" class="prose card">
+                <h2>3) 下一步建议与沟通话术</h2>
+
+                <h3>Step 1 - 澄清需求（向需求方确认）</h3>
+                <blockquote>
+                    <p>“请问该北京Java岗位的具体供应商名称？当前流程节点（简历初筛/技术面/HR谈薪）？是否有JD或岗位编码提供？”</p>
+                </blockquote>
+
+                <h3>Step 2 - 资源定向</h3>
+                <ul>
+                    <li>若需北京接口人：联系 <strong>华为官方招聘平台</strong> 或 <strong>北京OD供应商HR</strong>（如中软、软通等驻场团队）</li>
+                </ul>
+                <p>参考话术：</p>
+                <blockquote>
+                    <p>“我们手头有北京Java候选人，目标职级预计T2-T3，需确认：</p>
+                    <ul>
+                        <li>当前HC是否开放？</li>
+                        <li>技术栈是否需强化云服务（如华为云）经验？</li>
+                        <li>薪资结构中的绩效占比（北京常见15%-25%）？”</li>
+                    </ul>
+                </blockquote>
+            </article>
+        </section>
+
+        <section id="risks-5" class="section">
+            <article id="text-5" class="prose card">
+                <h2>4) 风险提示</h2>
+
+                <p>⚠️ <strong>地域政策差异</strong>：</p>
+                <ul>
+                    <li>北京社保公积金基数上限更高（影响报价测算）</li>
+                    <li>部分园区需提前申请访客码（如海淀菊园、朝阳望京）</li>
+                </ul>
+
+                <p>⚠️ <strong>技术评估重点</strong>：北京Java岗更关注：</p>
+                <ul>
+                    <li>高并发场景设计能力</li>
+                    <li>线上故障排查逻辑</li>
+                    <li>华为云工具链熟悉度（如DevCloud）</li>
+                </ul>
+            </article>
+        </section>
+        <div id=\"verification-6\" class=\"section\">\n    <article id=\"text-6\" class=\"prose card\">\n        <h2>5) 参考核验路径</h2>\n        \n        <div id=\"table-wrap-2\" class=\"table-wrap\">\n            <table id=\"table-2\">\n                <thead>\n                    <tr>\n                        <th>信息类型</th>\n                        <th>建议核实渠道</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr>\n                        <td>岗位真实性</td>\n                        <td>华为招聘官网 → 社会招聘 → 筛选北京/Java</td>\n                    </tr>\n                    <tr>\n                        <td>供应商政策</td>\n                        <td>联系北京OD合作方HR（如：科锐、易才）</td>\n                    </tr>\n                    <tr>\n                        <td>园区入驻细节</td>\n                        <td>目标园区行政服务号（如「华为北京行政」）</td>\n                    </tr>\n                </tbody>\n            </table>\n        </div>\n    </article>\n</div>
+
+        <section id="verification-6" class="section">
+            <article id="text-6" class="prose card">
+                <h2>5) 参考核验路径</h2>
+
+                <div id="table-wrap-2" class="table-wrap">
+                    <table id="table-2">
+                        <thead>
+                            <tr>
+                                <th>信息类型</th>
+                                <th>建议核实渠道</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>岗位真实性</td>
+                                <td>华为招聘官网 → 社会招聘 → 筛选北京/Java</td>
+                            </tr>
+                            <tr>
+                                <td>供应商政策</td>
+                                <td>联系北京OD合作方HR（如：科锐、易才）</td>
+                            </tr>
+                            <tr>
+                                <td>园区入驻细节</td>
+                                <td>目标园区行政服务号（如「华为北京行政」）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <blockquote>
+                    <p>📌 <strong>最终依据</strong>：所有政策以<strong>北京供应商书面合同</strong>及<strong>华为项目组邮件通知</strong>为准，跨地域信息不可直接复用。建议优先获取北京本地接口人（如信息包中的「接收简历接口人」角色）。</p>
+                </blockquote>
+            </article>
+        </section>
+    </main>
+
+    <footer id="page-footer">
+        @ 2025 剪刀碎大石
+    </footer>
+</body>
+</html>
